@@ -19,9 +19,15 @@ const postGroup = (token, payload) => request(server)
   })
   .expect(200);
 
+let tokens;
+const seed = () => Promise.all([
+  postGroup(tokens[0], { name: 'Group 0' }),
+  postGroup(tokens[3], { name: 'Group 1', public: true }),
+  postGroup(tokens[3], { name: 'Group 2' })
+]);
+
 describe.only('POST /groups', function () {
 
-  let tokens;
 
   before(() => {
     server = app.listen();
@@ -32,7 +38,8 @@ describe.only('POST /groups', function () {
         register({ username: 'userB' }).then(res => res.body.token),
         register({ username: 'userC' }).then(res => res.body.token),
         register({ username: 'userD' }).then(res => res.body.token)
-      ]).then((_tokens) => {
+      ])
+        .then((_tokens) => {
         tokens = _tokens;
       }))
   });
@@ -41,22 +48,18 @@ describe.only('POST /groups', function () {
   );
 
   it('creates group', function () {
-    console.log('tokens', tokens);
-    console.log('tokens[3]', tokens[3]);
-
-    return Promise.all([
-      postGroup(tokens[0], { name: 'Group 0' }),
-      postGroup(tokens[3], { name: 'Group 1', public: true }),
-      postGroup(tokens[3], { name: 'Group 2' })
-    ])
+    return seed()
       .then(function (res) {
-        console.log('res[0].body', res[0].body);
-
         expect(res[0].body).to.have.all.keys('_id', '_key', '_rev', 'createdAt', 'name', 'public', 'type', 'updatedAt');
         expect(res[1].body).to.have.all.keys('_id', '_key', '_rev', 'createdAt', 'name', 'public', 'type', 'updatedAt');
         expect(res[0].body.name).to.equal('Group 0');
         expect(res[1].body.name).to.equal('Group 1');
       })
+
+  });
+
+  it('lists groups', function () {
+    return seed()
       .then(() => {
         return Promise.all([
           request(server)
@@ -79,6 +82,35 @@ describe.only('POST /groups', function () {
             .expect(200)
             .then(function (res) {
               expect(res.body).to.have.length(2);
+            })
+        ])
+      })
+  });
+
+  it('lists groups I belong to', function () {
+    return seed()
+      .then(() => {
+        return Promise.all([
+          request(server)
+            .get('/groups/mine')
+            .set('Authorization', `Bearer ${tokens[3]}`)
+            .expect(200)
+            .then(function (res) {
+              expect(res.body).to.have.length(2);
+            }),
+          request(server)
+            .get('/groups/mine')
+            .set('Authorization', `Bearer ${tokens[2]}`)
+            .expect(200)
+            .then(function (res) {
+              expect(res.body).to.have.length(0);
+            }),
+          request(server)
+            .get('/groups/mine')
+            .set('Authorization', `Bearer ${tokens[0]}`)
+            .expect(200)
+            .then(function (res) {
+              expect(res.body).to.have.length(1);
             })
         ])
       })
