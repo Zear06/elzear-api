@@ -1,10 +1,18 @@
 import Arango from 'arangojs';
-import { arango } from '../config.dev';
 
-const url = `http://${arango.username}:${arango.password}@${arango.host}:${arango.port}`;
-const db = Arango({
-  url,
-  databaseName: arango.databaseName
-});
+let instance = null;
 
-export default db;
+function init(config) {
+  const url = `http://${config.username}:${config.password}@${config.host}:${config.port}`;
+  instance = new Arango({
+    url,
+    databaseName: config.databaseName
+  });
+}
+
+function get() {
+  return instance;
+}
+
+export default instance;
+export { init, get };

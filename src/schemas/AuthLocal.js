@@ -1,23 +1,72 @@
-import mongoose from 'mongoose';
+import { get as getDb } from '../arango';
+import ApiError from '../ApiError';
+import { UserArango } from './User';
+import bcrypt from 'bcryptjs';
+import Auth from './Auth';
+import { passwordSalt } from '../../config.dev';
 
-mongoose.createConnection('mongodb://localhost/test');
+class AuthLocalArango extends Auth {
+  constructor(auth: Object) {
+    super(auth);
+    Object.assign(this, auth);
+  }
 
-const authLocalSchema = mongoose.Schema({
-  user_id: { type: mongoose.Schema.ObjectId, ref: 'User', required: true, unique: true },
-  passwordHash: { type: String, required: true }
-});
+  static isFree(username) {
+    const db = getDb();
+    return db.collection('auth_local').firstExample({ username })
+      .then(() => {
+        throw new ApiError(400, 'Username already in use')
+      }, () => true)
+  }
 
-authLocalSchema.methods.getName = function getName() {
-  return this.username;
-};
+  static save(payload) {
+    const { _key, username, passwordHash } = payload;
+    const master = !!payload.setMaster;
+    const db = getDb();
+    return db.collection('auth_local').save({
+      _key,
+      username,
+      passwordHash,
+      master
+    }, { returnNew: true })
+      .catch(e => {
+        console.log('e', e);
 
-const AuthLocal = mongoose.model('AuthLocal', authLocalSchema);
+        throw e;
+      });
+  }
 
-export default AuthLocal;
+  static credentials2User(payload) {
+    const db = getDb();
+    return db.collection('auth_local').firstExample({ username: payload.username })
+      .then((authLocal) => {
+        return bcrypt.compare(`${payload.username}${passwordSalt}${payload.password}`, authLocal.passwordHash)
+          .then((isValid) => {
+            if (isValid) {
+              return UserArango.getFromKey(authLocal._key);
+            } else {
+              throw new ApiError(401, 'Invalid login');
+            }
+          })
+      })
+      .catch((e) => {
+        throw new ApiError(401, 'Invalid login', e);
+      });
+  }
 
-function getProfile(id) {
-  return AuthLocal.findOne({ _id: id })
-    .then(user => (user ? user.username : false));
+  static add(user, payload) {
+    const { username, password } = payload;
+    return AuthLocalArango.isFree(username)
+      .then(() => bcrypt.hash(`${username}${passwordSalt}${password}`, 5))
+      .then((passwordHash) => AuthLocalArango.save({
+        _key: user._key,
+        username,
+        passwordHash,
+        master: false
+      }));
+  }
 }
 
-export { getProfile };
+export {
+  AuthLocalArango
+};

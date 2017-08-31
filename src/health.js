@@ -1,7 +1,7 @@
-function health(req, res) {
-  res.status(200).json({
+function health() {
+  return {
     dependencies: []
-  });
+  };
 }
 
 export default health
