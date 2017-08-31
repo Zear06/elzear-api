@@ -1,21 +1,32 @@
-import mongoose from 'mongoose';
+import { get as getDb } from '../arango';
+import { UserArango } from './User';
+import ApiError from '../ApiError';
+import Auth from './Auth';
 
-mongoose.connect('mongodb://localhost/test');
+class AuthFb extends Auth {
+  constructor(auth: Object) {
+    super(auth);
+  }
 
-const authFacebookSchema = mongoose.Schema({
-  user_id: { type: mongoose.Schema.ObjectId, ref: 'User', required: true, unique: true },
-  profile: { type: Object },
-  id: { type: String, unique: true },
-  token: String
-});
+  static save(user, payload) {
+    const { data } = payload;
+    const master = !!payload.setMaster;
+    const db = getDb();
+    return db.collection('auth_facebook').save({
+      _key: user._key,
+      ...data,
+      master
+    }, { returnNew: true })
+      .catch(e => {
+        throw new ApiError(400, null, e);
+      });
+  }
 
-const AuthFacebook = mongoose.model('AuthFacebook', authFacebookSchema);
-
-export default AuthFacebook;
-
-function getProfile(id) {
-  return AuthFacebook.findOne({ id })
-    .then(auth => (auth ? auth.profile : false));
+  static profile2User(payload) {
+    const db = getDb();
+    return db.collection('auth_facebook').firstExample({ id: payload.id })
+      .then((authFb) => UserArango.getFromKey(authFb._key))
+  }
 }
 
-export { getProfile };
+export default AuthFb;
