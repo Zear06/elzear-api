@@ -26,7 +26,7 @@ const seed = () => Promise.all([
   postGroup(tokens[3], { name: 'Group 2' })
 ]);
 
-describe.only('POST /groups', function () {
+describe('/groups', function () {
 
 
   before(() => {

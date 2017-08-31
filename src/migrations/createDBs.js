@@ -1,14 +1,11 @@
 import Arango from 'arangojs';
 import { arango } from '../../config.dev';
+import { collections, edgeCollections } from '../schemas/collections'
 
 const url = `http://${arango.username}:${arango.password}@${arango.host}:${arango.port}`;
 const db = Arango({
   url
 });
-
-
-const collections = ['users', 'groups', 'auth_local', 'auth_facebook'];
-const edgeCollections = ['groups_users', 'users_auths'];
 
 // Promise.all([
 //   users.drop(),
