@@ -1,11 +1,11 @@
 // @flow
 import { passport } from './facebook';
-import ApiError from '../ApiError';
-import { UserArango } from '../schemas/User';
-import { client, facebook, jwtSecret } from '../../config.dev';
+import ApiError from '../../ApiError';
+import { UserArango } from '../../schemas/User';
+import { client, facebook, jwtSecret } from '../../../config.dev';
 import * as _ from 'lodash';
 import * as jwt from 'jsonwebtoken';
-import Auth from '../schemas/Auth';
+import Auth from '../../schemas/Auth';
 
 function generateToken(user) {
   return {

@@ -3,7 +3,7 @@
 import { Strategy, Strategy as FbStrat } from 'passport-facebook';
 import * as _ from 'lodash';
 import passport from 'koa-passport';
-import { api, facebook } from '../../config.dev';
+import { api, facebook } from '../../../config.dev';
 
 ['login', 'register', 'add'].forEach(stratName => {
   passport.use(`facebook${_.capitalize(stratName)}`, new FbStrat({
