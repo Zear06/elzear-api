@@ -19,12 +19,34 @@ const edgeCollections = ['groups_users', 'users_auths'];
 //   users_auths.drop()
 // ])
 //   .then(() => console.log('Collection dropped'));
-db.createDatabase('elzear')
-  .then(() => db.useDatabase('elzear'))
-  .then(() => Promise.all(
-    collections.map(name => db.collection(name).create())
-  ))
-  .then(() => Promise.all(
-    edgeCollections.map(name => db.edgeCollection(name).create())
-  ))
-  .then(() => console.log('Collection created'));
+// db.createDatabase('elzear')
+//   .then(() => db.useDatabase('elzear'))
+//   .then(() => Promise.all(
+//     collections.map(name => db.collection(name).create())
+//   ))
+//   .then(() => Promise.all(
+//     edgeCollections.map(name => db.edgeCollection(name).create())
+//   ))
+//   .then(() => console.log('Collection created'));
+
+function initDb(dbName) {
+  const db = new Arango({
+    url
+  });
+  return db
+    .dropDatabase(dbName)
+    .catch(() => true) // database was already removed
+    .then(() => db.createDatabase(dbName))
+    .then(() => db.useDatabase(dbName))
+    .then(() => Promise.all(
+      collections.map(name => db.collection(name).create())
+    ))
+    .then(() => Promise.all(
+      edgeCollections.map(name => db.edgeCollection(name).create())
+    ))
+    .then(() => {
+      console.log('Collection created');
+    });
+}
+
+initDb('elzear');
