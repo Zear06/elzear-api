@@ -5,7 +5,8 @@ import cors from 'koa-cors';
 import bodyParserKoa from 'koa-bodyparser';
 import session from 'koa-session';
 import router from './router';
-import { passport } from './auth/facebook';
+import { passport } from './controllers/auth/facebook';
+import { sessionsSecretKey } from '../config.dev';
 
 const CONFIG = {
   key: 'koa:sess', /** (string) cookie key (default is koa:sess) */
@@ -21,7 +22,7 @@ const CONFIG = {
 
 const appKoa = new Koa();
 
-appKoa.keys = ['some secret hurr'];
+appKoa.keys = [sessionsSecretKey];
 appKoa.use(json());
 appKoa.use(logger());
 appKoa.use(bodyParserKoa());
@@ -41,13 +42,12 @@ const bypassWrapper = [];
 //Error handling middleware
 appKoa.use(async function (ctx, next) {
   try {
-    if (!bypassWrapper.includes(ctx.path)) {
+    if (bypassWrapper.includes(ctx.path)) {
+      return await next();
+    } else {
       ctx.type = 'json';
       ctx.body = await next();
       ctx.status = 200;
-    } else {
-      const aa = await next();
-      return aa;
     }
   } catch (err) {
     ctx.status = err.statusCode || 500;

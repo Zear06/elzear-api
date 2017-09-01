@@ -1,12 +1,12 @@
 import Router from 'koa-router';
 import koaJwt from 'koa-jwt';
-import health from './health';
+import health from './controllers/health';
 import { getAll } from './users/index';
 import { jwtSecret } from '../config.dev';
 import {
   authLogin, authRegister, callback,
   addCallback, authAdd, authPatch, setMaster, authDelete
-} from './auth/index';
+} from './controllers/auth/index';
 import { UserArango } from './schemas/User';
 import ApiError from './ApiError';
 
@@ -53,5 +53,9 @@ router.put('/auth/:authType', koaJwt({ secret: jwtSecret }), setMaster);
 router.delete('/auth/:authType', koaJwt({ secret: jwtSecret }), authDelete);
 
 router.get('/users', getAll);
+
+// router.post('/groups', create);
+// router.get('/groups', getAll);
+
 
 export default router;
