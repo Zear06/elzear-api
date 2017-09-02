@@ -1,4 +1,4 @@
-import { get as getDb } from '../arango';
+import { db } from '../arango';
 import { UserArango } from './User';
 
 const availableSources = ['local', 'facebook'];
@@ -9,7 +9,6 @@ class Auth {
   }
 
   static setMaster(user, newMaster: 'local' | 'facebook') {
-    const db = getDb();
     return Promise.all(availableSources.map(
       source => db.collection(`auth_${source}`).update({
         _key: user._key
@@ -21,7 +20,6 @@ class Auth {
   }
 
   static authDelete(user, type: 'local' | 'facebook') {
-    const db = getDb();
     return db.collection(`auth_${type}`).removeByExample({
       _key: user._key,
       master: false

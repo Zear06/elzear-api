@@ -1,22 +1,29 @@
 // @flow
 import * as _ from 'lodash';
-import { get as getDb } from '../arango';
+import { db } from '../arango';
 import ApiError from '../ApiError';
+import Document from './Document';
+import GroupUser from './GroupUser';
 
 const groupTypes = ['oligarchy'];
 
-class Group {
-  _key: string;
-  _id: string;
-  name: string;
-  updatedAt: string;
-  createdAt: string;
+class Group extends Document {
+  document: {
+    _key: string,
+    _id: string,
+    name: string,
+    updatedAt: string,
+    createdAt: string
+  };
+
+  static collectionName = 'groups';
+  static title = 'group';
 
   constructor(group: Object) {
-    Object.assign(this, group);
+    super(group);
   }
 
-  static save(user, payload): Promise<Group> {
+  static saveGroup(user, payload): Promise<Group> {
     if (!_.has(payload, 'name')) {
       throw new ApiError(400, 'Group must have a name');
     }
@@ -24,7 +31,6 @@ class Group {
       throw new ApiError(400, 'Group must have a type');
     }
 
-    const db = getDb();
     const now = new Date();
     const data = {
       name: payload.name,
@@ -34,48 +40,26 @@ class Group {
       updatedAt: now
     };
 
-    return db.collection('groups')
-      .save(data, { returnNew: true })
-      .then((group) => db.edgeCollection('groups_users')
-        .save({}, group.new._id, user._id)
-        .then(() => group.new)
+    return this.save(data, { returnNew: true })
+      .then((group) => {
+          return GroupUser.save({}, group.new._id, user._id)
+            .then(() => group.new)
+        }
       );
   }
 
-  static putUser(groupKey, userKey, payload = {}) {
-    return getDb().edgeCollection('groups_users')
-      .save(payload, `groups/${groupKey}`, `users/${userKey}`);
-  }
-
   static patchUser(groupKey, userKey, payload = {}) {
-    return getDb().edgeCollection('groups_users')
+    return db.edgeCollection('groups_users')
       .updateByExample({ _from: `groups/${groupKey}`, _to: `users/${userKey}` }, payload)
       .then((resp) => {
         if (resp.updated === 1) {
-          return getDb().edgeCollection('groups_users').firstExample({
+          return db.edgeCollection('groups_users').firstExample({
             _from: `groups/${groupKey}`,
             _to: `users/${userKey}`
           })
         }
         throw new ApiError(404, 'Member not found');
       });
-  }
-
-  static getUsers(groupKey) {
-    return getDb().edgeCollection('groups_users')
-      .outEdges(`groups/${groupKey}`);
-  }
-
-  static removeUser(groupKey, userKey) {
-    return getDb().edgeCollection('groups_users')
-      .removeByExample({ _from: `groups/${groupKey}`, _to: `users/${userKey}` })
-      .then((resp) => {
-        if (resp.deleted === 1) {
-          return {};
-        }
-        throw new ApiError(404, 'Member not found');
-
-      })
   }
 
   static getVisible(user) {
@@ -91,42 +75,17 @@ class Group {
         groupIds.map(groupId => Group.getFromId(groupId))
       ))
   }
-
-  static getFromKey(key): Promise<Group> {
-    return getDb().collection('groups').firstExample({ _key: key })
-  }
-
-  static getFromId(id): Promise<Group> {
-    return getDb().collection('groups').firstExample({ _id: id });
-  }
-
-  static removeByKey(key): Promise<Group> {
-    return getDb().collection('groups').removeByKeys([key]);
-  }
-
-  static patchByKey(key, payload): Promise<Group> {
-    return getDb().collection('groups')
-      .updateByExample({ _key: key }, payload)
-      .then((resp) => {
-        if (resp.updated === 1) {
-          return getDb().collection('groups').firstExample({ _key: key })
-        }
-        throw new ApiError(404, 'Group not found');
-      });
-  }
 }
 
 function usersGroupIds(user) {
-  const db = getDb();
-  return db.edgeCollection('groups_users').inEdges(user._id)
+  return GroupUser.inEdgesByKey(user._key)
     .then(rows => Promise.all(
       rows.map(row => row._from)
     ));
 }
 
 function publicGroups() {
-  const db = getDb();
-  return db.edgeCollection('groups')
+  return db.collection('groups')
     .byExample({ public: true })
     .then(rows => rows.all());
 }

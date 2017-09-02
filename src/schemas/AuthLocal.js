@@ -1,4 +1,4 @@
-import { get as getDb } from '../arango';
+import { db } from '../arango';
 import ApiError from '../ApiError';
 import { UserArango } from './User';
 import bcrypt from 'bcryptjs';
@@ -12,7 +12,6 @@ class AuthLocalArango extends Auth {
   }
 
   static isFree(username) {
-    const db = getDb();
     return db.collection('auth_local').firstExample({ username })
       .then(() => {
         throw new ApiError(400, 'Username already in use')
@@ -22,7 +21,6 @@ class AuthLocalArango extends Auth {
   static save(payload) {
     const { _key, username, passwordHash } = payload;
     const master = !!payload.setMaster;
-    const db = getDb();
     return db.collection('auth_local').save({
       _key,
       username,
@@ -37,7 +35,6 @@ class AuthLocalArango extends Auth {
   }
 
   static credentials2User(payload) {
-    const db = getDb();
     return db.collection('auth_local').firstExample({ username: payload.username })
       .then((authLocal) => {
         return bcrypt.compare(`${payload.username}${passwordSalt}${payload.password}`, authLocal.passwordHash)
