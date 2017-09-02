@@ -59,5 +59,12 @@ router.get('/users', getAll);
 router.post('/groups', group.create);
 router.get('/groups', group.getAll);
 router.get('/groups/mine', group.getMyGroups);
+router.get('/groups/:groupKey', group.get);
+router.patch('/groups/:groupKey', group.patch);
+router.del('/groups/:groupKey', group.remove);
+router.get('/groups/:groupKey/users', group.getUsers);
+router.put('/groups/:groupKey/users/:userKey', group.putUser);
+router.patch('/groups/:groupKey/users/:userKey', group.patchUser);
+router.del('/groups/:groupKey/users/:userKey', group.removeUser);
 
 export default router;

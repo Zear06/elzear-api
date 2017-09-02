@@ -17,8 +17,6 @@ class Group {
   }
 
   static save(user, payload): Promise<Group> {
-    console.log('payload', payload);
-
     if (!_.has(payload, 'name')) {
       throw new ApiError(400, 'Group must have a name');
     }
@@ -44,6 +42,42 @@ class Group {
       );
   }
 
+  static putUser(groupKey, userKey, payload = {}) {
+    return getDb().edgeCollection('groups_users')
+      .save(payload, `groups/${groupKey}`, `users/${userKey}`);
+  }
+
+  static patchUser(groupKey, userKey, payload = {}) {
+    return getDb().edgeCollection('groups_users')
+      .updateByExample({ _from: `groups/${groupKey}`, _to: `users/${userKey}` }, payload)
+      .then((resp) => {
+        if (resp.updated === 1) {
+          return getDb().edgeCollection('groups_users').firstExample({
+            _from: `groups/${groupKey}`,
+            _to: `users/${userKey}`
+          })
+        }
+        throw new ApiError(404, 'Member not found');
+      });
+  }
+
+  static getUsers(groupKey) {
+    return getDb().edgeCollection('groups_users')
+      .outEdges(`groups/${groupKey}`);
+  }
+
+  static removeUser(groupKey, userKey) {
+    return getDb().edgeCollection('groups_users')
+      .removeByExample({ _from: `groups/${groupKey}`, _to: `users/${userKey}` })
+      .then((resp) => {
+        if (resp.deleted === 1) {
+          return {};
+        }
+        throw new ApiError(404, 'Member not found');
+
+      })
+  }
+
   static getVisible(user) {
     return Promise.all([this.getGroupsOf(user), publicGroups()])
       .then((groups) => _.uniqBy(
@@ -64,6 +98,21 @@ class Group {
 
   static getFromId(id): Promise<Group> {
     return getDb().collection('groups').firstExample({ _id: id });
+  }
+
+  static removeByKey(key): Promise<Group> {
+    return getDb().collection('groups').removeByKeys([key]);
+  }
+
+  static patchByKey(key, payload): Promise<Group> {
+    return getDb().collection('groups')
+      .updateByExample({ _key: key }, payload)
+      .then((resp) => {
+        if (resp.updated === 1) {
+          return getDb().collection('groups').firstExample({ _key: key })
+        }
+        throw new ApiError(404, 'Group not found');
+      });
   }
 }
 
