@@ -9,6 +9,7 @@ import {
 } from './controllers/auth/index';
 import { UserArango } from './schemas/User';
 import ApiError from './ApiError';
+import * as group from './controllers/group';
 
 const router = new Router();
 
@@ -17,6 +18,7 @@ router.use([
   '/users',
   '/me',
   '/auth/local/add',
+  '/groups'
   // '/auth/:authType'
 ], koaJwt({ secret: jwtSecret }));
 
@@ -54,8 +56,15 @@ router.delete('/auth/:authType', koaJwt({ secret: jwtSecret }), authDelete);
 
 router.get('/users', getAll);
 
-// router.post('/groups', create);
-// router.get('/groups', getAll);
-
+router.post('/groups', group.create);
+router.get('/groups', group.getAll);
+router.get('/groups/mine', group.getMyGroups);
+router.get('/groups/:groupKey', group.get);
+router.patch('/groups/:groupKey', group.patch);
+router.del('/groups/:groupKey', group.remove);
+router.get('/groups/:groupKey/users', group.getUsers);
+router.put('/groups/:groupKey/users/:userKey', group.putUser);
+router.patch('/groups/:groupKey/users/:userKey', group.patchUser);
+router.del('/groups/:groupKey/users/:userKey', group.removeUser);
 
 export default router;

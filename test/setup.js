@@ -1,11 +1,9 @@
 import Arango from 'arangojs';
 import { arango as config } from '../config.test';
 import app from '../src/app';
+import { collections, edgeCollections } from '../src/schemas/collections'
 
 const url = `http://${config.username}:${config.password}@${config.host}:${config.port}`;
-
-const collections = ['users', 'groups', 'auth_local', 'auth_facebook'];
-const edgeCollections = ['groups_users', 'users_auths'];
 
 function initDb() {
   const db = new Arango({
