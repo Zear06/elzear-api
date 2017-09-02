@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { server } from './setup';
-import { UserArango } from '../src/schemas/User';
+import AuthFb from '../src/schemas/AuthFacebook';
 
 const testUser = { username: 'valid', password: 'password' };
 
@@ -31,17 +31,13 @@ function login(auth) {
     .send(makePayload(auth))
 }
 
-function add(type, payload, token) {
-  return UserArango.add(type, payload, token);
-}
-
 const fbProfile = {
   id: 'idid'
 };
 
 function wholeUser(auth) {
   return registerLogin(makePayload(auth))
-    .then(token => add('facebook', fbProfile, token)
+    .then(token => AuthFb.add(fbProfile, token)
       .then(() => token)
     );
 }

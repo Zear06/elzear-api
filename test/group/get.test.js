@@ -21,8 +21,6 @@ describe('GET /groups/:groupId', function () {
   it('get groups I own', function () {
     return seed(server, users.map(user => user.token))
       .then((groups) => {
-        console.log('groups', groups);
-
         groupKeys = groups.map(group => group._key);
         return Promise.all([
           request(server)

@@ -32,7 +32,6 @@ describe('GET /groups/:groupKey/users', function () {
           .set('Authorization', `Bearer ${users[3].token}`)
           .expect(200)
           .then(function (res) {
-            console.log('res.body', res.body);
           })
       ]))
       .then(() => Promise.all([

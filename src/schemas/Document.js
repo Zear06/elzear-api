@@ -10,6 +10,7 @@ class Document {
   document: Object;
   collectionName: string;
   title: string;
+  saveTime: boolean;
 
   constructor(document) {
     if (new.target === Document) {
@@ -35,6 +36,10 @@ class Document {
   }
 
   static save(data: any, opts?: any): Promise<any> {
+    if (this.saveTime) {
+      const now = new Date();
+      return this.collection().save({ createdAt: now, updatedAt: now, ...data }, opts)
+    }
     return this.collection().save(data, opts)
   }
 

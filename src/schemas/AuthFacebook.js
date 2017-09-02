@@ -1,17 +1,19 @@
-import { db } from '../arango';
-import { UserArango } from './User';
+import User from './User';
 import ApiError from '../ApiError';
 import Auth from './Auth';
 
 class AuthFb extends Auth {
+  static collectionName = 'auth_facebook';
+  static title = 'authFacebook';
+
   constructor(auth: Object) {
     super(auth);
   }
 
-  static save(user, payload) {
+  static saveAuthFb(user, payload) {
     const { data } = payload;
-    const master = !!payload.setMaster;
-    return db.collection('auth_facebook').save({
+    const master = !!payload.master;
+    return this.save({
       _key: user._key,
       ...data,
       master
@@ -22,8 +24,33 @@ class AuthFb extends Auth {
   }
 
   static profile2User(payload) {
-    return db.collection('auth_facebook').firstExample({ id: payload.id })
-      .then((authFb) => UserArango.getFromKey(authFb._key))
+    return this.collection().firstExample({ id: payload.id })
+      .then((authFb) => Auth.userPlusAuths(authFb._key))
+  }
+
+  static login(payload: Object): Promise<any> {
+    return AuthFb.profile2User(payload);
+  }
+
+
+  static register(payload: Object): Promise<any> {
+    return User.save({
+      username: payload.displayName
+    }, { returnNew: true })
+      .then(user => {
+        return this.save({
+          ...payload,
+          master: true,
+          _key: user.new._key
+        })
+          .then(() => Auth.userPlusAuths(user.new._key))
+      });
+  }
+
+  static add(payload: Object, userToken) {
+    const user = User.decode(userToken);
+    return AuthFb.saveAuthFb(user, payload)
+      .then(authFb => Auth.userPlusAuths(user._key));
   }
 }
 
