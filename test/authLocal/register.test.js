@@ -1,10 +1,6 @@
 import request from 'supertest';
 import { expect } from 'chai';
-import { init } from '../../src/arango';
-import { arango } from '../../config.test';
 import { initDb, server } from '../setup';
-
-init(arango);
 
 const testUser = { username: 'valid', password: 'password' };
 const testUserDupe = { username: 'Dupe', password: 'dupdupdup' };

@@ -1,12 +1,8 @@
 import request from 'supertest';
 import { expect } from 'chai';
-import { init } from '../../src/arango';
-import { arango } from '../../config.test';
 import * as setup from '../setup';
 import { registerLogin } from '../helpers';
 import { server } from '../setup';
-
-init(arango);
 
 describe('POST /auth/facebook/add', function () {
 

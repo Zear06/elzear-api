@@ -51,6 +51,9 @@ appKoa.use(async function (ctx, next) {
     }
   } catch (err) {
     ctx.status = err.statusCode || 500;
+    if (ctx.status === 500) {
+      console.log('err', err);
+    }
     ctx.body = {
       message: err.message
     };
