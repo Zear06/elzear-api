@@ -1,34 +1,24 @@
 // @flow
 import { passport } from './facebook';
 import ApiError from '../../ApiError';
-import { UserArango } from '../../schemas/User';
 import { client, facebook, jwtSecret } from '../../../config.dev';
 import * as _ from 'lodash';
 import * as jwt from 'jsonwebtoken';
 import Auth from '../../schemas/Auth';
-
-function generateToken(user) {
-  return {
-    user,
-    token: user.toJwt()
-  };
-}
+import { AuthLocalArango } from '../../schemas/AuthLocal';
+import AuthFb from '../../schemas/AuthFacebook';
 
 function authPatch(ctx) {
-  if (!ctx.params.authType) {
-    throw new ApiError(400, 'Missing required parameter `q`');
+  if (ctx.params.authType === 'local') {
+    return AuthLocalArango.authPatch(ctx.state.user, ctx.request.body).then(Auth.generateToken);
   }
-  return UserArango.authPatch(ctx.state.user, ctx.params.authType, ctx.request.body).then(user => generateToken(user));
+  throw new ApiError('400', 'Invalid Auth type');
 }
 
 function authLogin(ctx, next) {
-  if (!ctx.params.authType) {
-    throw new ApiError(401, 'Missing required parameter `q`');
-  }
-
   switch (ctx.params.authType) {
     case 'local': {
-      return UserArango.login('local', ctx.request.body).then(user => generateToken(user));
+      return AuthLocalArango.login(ctx.request.body).then(Auth.generateToken);
     }
     case 'facebook': {
       return passport.authenticate('facebookLogin')(ctx, next);
@@ -40,15 +30,9 @@ function authLogin(ctx, next) {
 }
 
 function authRegister(ctx, next) {
-
-  if (!ctx.params.authType) {
-    throw new ApiError(401, 'Missing required parameter `q`');
-  }
-
   switch (ctx.params.authType) {
     case 'local':
-      return UserArango.register('local', ctx.request.body).then(user => generateToken(user));
-
+      return AuthLocalArango.register(ctx.request.body).then(Auth.generateToken);
     case 'facebook':
       return passport.authenticate('facebookRegister')(ctx, next);
     default:
@@ -57,21 +41,16 @@ function authRegister(ctx, next) {
 }
 
 function authAdd(ctx, next) {
-  if (!ctx.params.authType) {
-    throw new ApiError('missing authType param');
-  }
-
   ctx.session.userToken = null;
   switch (ctx.params.authType) {
     case 'local':
-      return localAdd(ctx, next).then(user => generateToken(user, res));
+      return AuthLocalArango.add(ctx.request.body, ctx.state.user._key).then(Auth.generateToken);
     case 'facebook':
       const userToken = ctx.query.token;
       return new Promise((resolve, reject) => {
         return jwt.verify(userToken, jwtSecret, function (err) {
           if (err) {
             reject(new ApiError(401, err.message));
-            // throw new ApiError(401, err.message);
           } else {
             ctx.session.userToken = userToken;
             resolve(true);
@@ -79,37 +58,39 @@ function authAdd(ctx, next) {
         });
       })
         .then(() => passport.authenticate('facebookAdd')(ctx, next));
-
     default:
       throw new Error('invalid login type');
   }
 }
 
-const fcts = {
-  login: UserArango.login,
-  register: UserArango.register,
-  add: UserArango.add
+const authClasses = {
+  'facebook': AuthFb,
+  'local': AuthLocalArango
 };
 
 function callback(endpoint) {
-  const fct = fcts[endpoint];
   return function (ctx) {
-    return wrappers[ctx.params.authType](ctx, fct, `${ctx.params.authType}${_.capitalize(endpoint)}`);
+    const authClass = authClasses[ctx.params.authType];
+    const fct = {
+      login: authClass.login,
+      register: authClass.register,
+      add: authClass.add
+    };
+
+    return wrappers[ctx.params.authType](ctx, fct[endpoint], `${ctx.params.authType}${_.capitalize(endpoint)}`);
   }
 }
 
 const wrappers = {
   facebook: function fbWrap(ctx, callback, stratName) {
-    console.log('arguments', arguments);
-
     return passport.authenticate(stratName, {
       successRedirect: '/api/success',
       failureRedirect: '/api'
     })(ctx)
       .then(() => {
-        return callback('facebook', ctx.req.user, ctx.session.userToken || null)
+        return callback(ctx.req.user, ctx.session.userToken || null)
       })
-      .then(user => generateToken(user))
+      .then(user => Auth.generateToken())
       .then((tokenResp) => {
         ctx.status = 301;
         ctx.body = 'Redirecting to shopping cart';
@@ -117,6 +98,7 @@ const wrappers = {
       })
       .catch((e) => {
         ctx.status = e.status || 500;
+        console.log('e', e);
         ctx.body = { message: e.message };
         ctx.response.redirect(`${client}/#/?error&code${ctx.status}&message=${encodeURI(e.message)}`);
       });

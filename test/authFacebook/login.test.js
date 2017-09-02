@@ -1,13 +1,9 @@
 import request from 'supertest';
 import { expect } from 'chai';
-import { init } from '../../src/arango';
-import { arango } from '../../config.test';
 import * as setup from '../setup';
 import { server } from '../setup';
-import { UserArango } from '../../src/schemas/User';
 import { profile } from './fbProfile';
-
-init(arango);
+import AuthFb from '../../src/schemas/AuthFacebook';
 
 describe('POST /auth/facebook/login', function () {
 
@@ -25,7 +21,7 @@ describe('POST /auth/facebook/login', function () {
   });
 
   it('fails when not registered', function () {
-    return UserArango.login('facebook', profile)
+    return AuthFb.login(profile)
       .then(() => {
         return expect(true).not.to.be.ok;
       })
@@ -37,8 +33,8 @@ describe('POST /auth/facebook/login', function () {
 
 
   it('register when callback is called', function () {
-    return UserArango.register('facebook', profile)
-      .then(() => UserArango.login('facebook', profile))
+    return AuthFb.register(profile)
+      .then(() => AuthFb.login(profile))
       .then((user) => {
           expect(user).to.be.ok;
           expect(user).have.all.keys(['_key', '_id', '_rev', 'createdAt', 'updatedAt', 'auths', 'username']);

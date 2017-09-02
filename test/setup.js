@@ -1,6 +1,7 @@
 import Arango from 'arangojs';
 import { arango as config } from '../config.test';
 import app from '../src/app';
+import { init } from '../src/arango';
 import { collections, edgeCollections } from '../src/schemas/collections'
 
 const url = `http://${config.username}:${config.password}@${config.host}:${config.port}`;
@@ -37,6 +38,9 @@ function truncate() {
       collections.map(name => db.collection(name).truncate())
     ))
 }
+
+
+init(config);
 
 const server = app.listen();
 

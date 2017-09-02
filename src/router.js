@@ -1,15 +1,15 @@
 import Router from 'koa-router';
 import koaJwt from 'koa-jwt';
 import health from './controllers/health';
-import { getAll } from './users/index';
 import { jwtSecret } from '../config.dev';
 import {
   authLogin, authRegister, callback,
   addCallback, authAdd, authPatch, setMaster, authDelete
 } from './controllers/auth/index';
-import { UserArango } from './schemas/User';
 import ApiError from './ApiError';
 import * as group from './controllers/group';
+import * as user from './controllers/user';
+import Auth from './schemas/Auth';
 
 const router = new Router();
 
@@ -23,7 +23,7 @@ router.use([
 ], koaJwt({ secret: jwtSecret }));
 
 function me(ctx) {
-  return UserArango.getFromKey(ctx.state.user._key);
+  return Auth.userPlusAuths(ctx.state.user._key);
 }
 
 async function checkAuthType (ctx, next) {
@@ -54,7 +54,7 @@ router.patch('/auth/:authType', koaJwt({ secret: jwtSecret }), authPatch);
 router.put('/auth/:authType', koaJwt({ secret: jwtSecret }), setMaster);
 router.delete('/auth/:authType', koaJwt({ secret: jwtSecret }), authDelete);
 
-router.get('/users', getAll);
+router.get('/users', user.getAll);
 
 router.post('/groups', group.create);
 router.get('/groups', group.getAll);

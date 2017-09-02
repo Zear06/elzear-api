@@ -1,29 +1,28 @@
-import { get as getDb } from '../arango';
 import ApiError from '../ApiError';
-import { UserArango } from './User';
 import bcrypt from 'bcryptjs';
 import Auth from './Auth';
 import { passwordSalt } from '../../config.dev';
+import * as _ from 'lodash';
+import { db } from '../arango';
+import User from './User';
+
+function hash(username, password) {
+  return bcrypt.hash(`${username}${passwordSalt}${password}`, 5);
+}
 
 class AuthLocalArango extends Auth {
+  static collectionName = 'auth_local';
+  static title = 'authLocal';
+
   constructor(auth: Object) {
     super(auth);
     Object.assign(this, auth);
   }
 
-  static isFree(username) {
-    const db = getDb();
-    return db.collection('auth_local').firstExample({ username })
-      .then(() => {
-        throw new ApiError(400, 'Username already in use')
-      }, () => true)
-  }
-
-  static save(payload) {
+  static saveAuthLocal(payload) {
     const { _key, username, passwordHash } = payload;
     const master = !!payload.setMaster;
-    const db = getDb();
-    return db.collection('auth_local').save({
+    return this.save({
       _key,
       username,
       passwordHash,
@@ -31,19 +30,17 @@ class AuthLocalArango extends Auth {
     }, { returnNew: true })
       .catch(e => {
         console.log('e', e);
-
         throw e;
       });
   }
 
   static credentials2User(payload) {
-    const db = getDb();
-    return db.collection('auth_local').firstExample({ username: payload.username })
+    return this.collection().firstExample({ username: payload.username })
       .then((authLocal) => {
         return bcrypt.compare(`${payload.username}${passwordSalt}${payload.password}`, authLocal.passwordHash)
           .then((isValid) => {
             if (isValid) {
-              return UserArango.getFromKey(authLocal._key);
+              return Auth.userPlusAuths(authLocal._key);
             } else {
               throw new ApiError(401, 'Invalid login');
             }
@@ -54,17 +51,92 @@ class AuthLocalArango extends Auth {
       });
   }
 
-  static add(user, payload) {
-    const { username, password } = payload;
-    return AuthLocalArango.isFree(username)
-      .then(() => bcrypt.hash(`${username}${passwordSalt}${password}`, 5))
-      .then((passwordHash) => AuthLocalArango.save({
-        _key: user._key,
-        username,
-        passwordHash,
-        master: false
-      }));
+  static login(payload: Object): Promise<any> {
+    return AuthLocalArango.credentials2User(payload);
   }
+
+
+  static register(payload: Object): Promise<any> {
+    const { username, password } = payload;
+    return this.validate(payload)
+      .then(() => hash(username, password))
+      .then((passwordHash) => {
+        return User.save({
+          username
+        }, { returnNew: true })
+          .then(user => {
+            return this.save({
+              username,
+              passwordHash,
+              master: true,
+              _key: user.new._key
+            })
+              .then(() => Auth.userPlusAuths(user.new._key))
+          });
+      })
+      .catch((err) => {
+        throw new ApiError(400, null, err);
+      });
+  }
+
+  static add(payload: Object, userKey) {
+    const { username, password } = payload;
+    return this.validate(payload)
+      .then(() => hash(username, password))
+      .then((passwordHash) => {
+        return Promise.all([
+          AuthLocalArango.saveAuthLocal({
+            _key: userKey,
+            username,
+            passwordHash,
+            master: false
+          }),
+          db.collection('users')
+            .update(userKey, { updatedAt: new Date() }, { returnNew: true })
+        ])
+          .then(() => Auth.userPlusAuths(userKey));
+      })
+      .catch((err) => {
+        throw new ApiError(400, null, err);
+      });
+  }
+
+  static validate(payload, currentUsername) {
+    const { username, password } = payload;
+    if (!username || !password) {
+      throw new ApiError(400, 'Missing fields');
+    }
+    if (payload.username === currentUsername) {
+      return Promise.resolve(true);
+    }
+    return this.collection().firstExample({ username })
+      .then(() => {
+        throw new ApiError(400, 'Username already in use')
+      }, () => true)
+  }
+
+  static authPatch(user, payload: Object): Promise<any> {
+    const { username, password } = payload;
+    const currentUsername = _.find(user.auths, { type: 'local' }).username;
+    return this.validate(payload, currentUsername)
+      .then(() => bcrypt.hash(`${username}${passwordSalt}${password}`, 5))
+      .then((passwordHash) => {
+        return Promise.all([
+          db.collection('auth_local').update({ _key: user._key }, {
+            username,
+            passwordHash
+          }, { returnNew: true }),
+          db.collection('users')
+            .update(user._id, { updatedAt: new Date() }, { returnNew: true })
+        ])
+          .then(() => Auth.userPlusAuths(user._key));
+      })
+      .catch((err) => {
+        throw new ApiError(400, null, err);
+      });
+  }
+
+
 }
 
 export {
