@@ -16,6 +16,11 @@ class Document {
     return db.collection(this.collectionName);
   }
 
+  static some(example: any) {
+    return this.collection().firstExample(example)
+      .then(() => true, () => false)
+  }
+
   static getFromKey(key): Promise<arangoDoc> {
     return this.collection().firstExample({ _key: key })
   }

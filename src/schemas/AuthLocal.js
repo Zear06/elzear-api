@@ -104,10 +104,13 @@ class AuthLocalArango extends Auth {
     if (payload.username === currentUsername) {
       return Promise.resolve(true);
     }
-    return this.collection().firstExample({ username })
-      .then(() => {
-        throw new ApiError(400, 'Username already in use')
-      }, () => true)
+    return this.some({ username })
+      .then((hasSome) => {
+        if (hasSome) {
+          throw new ApiError(400, 'Username already in use')
+        }
+        return true;
+      });
   }
 
   static authPatch(user, payload: Object): Promise<any> {
