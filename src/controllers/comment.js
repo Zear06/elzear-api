@@ -2,6 +2,7 @@ import Comment from '../schemas/Comment';
 import CommentComment from '../schemas/CommentComment';
 import CommentGroup from '../schemas/CommentGroup';
 import CommentUser from '../schemas/CommentUser';
+import { apiArray } from './util';
 
 function get(ctx) {
   return Comment.getFromKey(ctx.params.commentKey);
@@ -15,7 +16,7 @@ function patch(ctx,) {
 
 const commentPoints = (klass) => ({
   get: function (ctx) {
-    return klass.inEdgesByKey(ctx.params.key)
+    return klass.inEdgesByKey(ctx.params.key).then(apiArray);
   },
   post: function (ctx) {
     return klass.saveUsingKeys(ctx.request.body, ctx.state.user._key, ctx.params.key)
