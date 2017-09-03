@@ -9,6 +9,7 @@ import {
 import ApiError from './ApiError';
 import * as group from './controllers/group';
 import * as user from './controllers/user';
+import * as comment from './controllers/comment';
 import Auth from './schemas/Auth';
 
 const router = new Router();
@@ -66,5 +67,19 @@ router.get('/groups/:groupKey/users', group.getUsers);
 router.put('/groups/:groupKey/users/:userKey', group.putUser);
 router.patch('/groups/:groupKey/users/:userKey', group.patchUser);
 router.del('/groups/:groupKey/users/:userKey', group.removeUser);
+
+router.get('/comments/:commentKey', comment.get);
+router.del('/comments/:commentKey', comment.remove);
+router.patch('/comments/:commentKey', comment.patch);
+
+router.get('/comments/:key/comments', comment.comment.get);
+router.post('/comments/:key/comments/:commentKey', comment.comment.post);
+
+router.get('/groups/:key/comments', comment.group.get);
+router.post('/groups/:key/comments', comment.group.post);
+
+router.get('/users/:key/comments', comment.user.get);
+router.post('/users/:key/comments', comment.user.post);
+
 
 export default router;

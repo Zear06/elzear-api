@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { server } from './setup';
 import AuthFb from '../src/schemas/AuthFacebook';
+import * as setup from './setup';
 
 const testUser = { username: 'valid', password: 'password' };
 
@@ -42,4 +43,13 @@ function wholeUser(auth) {
     );
 }
 
-export { registerLogin, register, login, wholeUser };
+
+const set4Users = () => setup.initDb()
+  .then(() => Promise.all([
+    register({ username: 'userA' }).then(res => res.body),
+    register({ username: 'userB' }).then(res => res.body),
+    register({ username: 'userC' }).then(res => res.body),
+    register({ username: 'userD' }).then(res => res.body)
+  ]));
+
+export { registerLogin, register, login, wholeUser, set4Users };

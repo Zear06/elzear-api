@@ -18,6 +18,7 @@ class Group extends Document {
 
   static collectionName = 'groups';
   static title = 'group';
+  static saveTime = true;
 
   constructor(group: Object) {
     super(group);

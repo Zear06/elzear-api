@@ -1,7 +1,8 @@
 import request from 'supertest';
 import { expect } from 'chai';
 import * as setup from '../setup';
-import { seed, set4Users } from './utils';
+import { seed } from './utils';
+import { set4Users } from '../helpers';
 
 const server = setup.server;
 let groupKeys;
