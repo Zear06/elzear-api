@@ -12,13 +12,6 @@ class Document {
   title: string;
   saveTime: boolean;
 
-  constructor(document) {
-    if (new.target === Document) {
-      throw new TypeError('Cannot construct Abstract instances directly');
-    }
-    this.document = document;
-  }
-
   static collection() {
     return db.collection(this.collectionName);
   }

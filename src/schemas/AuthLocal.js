@@ -14,11 +14,6 @@ class AuthLocalArango extends Auth {
   static collectionName = 'auth_local';
   static title = 'authLocal';
 
-  constructor(auth: Object) {
-    super(auth);
-    Object.assign(this, auth);
-  }
-
   static saveAuthLocal(payload) {
     const { _key, username, passwordHash } = payload;
     const master = !!payload.setMaster;

@@ -18,10 +18,7 @@ class Group extends Document {
 
   static collectionName = 'groups';
   static title = 'group';
-
-  constructor(group: Object) {
-    super(group);
-  }
+  static saveTime = true;
 
   static saveGroup(user, payload): Promise<Group> {
     if (!_.has(payload, 'name')) {

@@ -7,13 +7,6 @@ import * as jwt from 'jsonwebtoken';
 const availableSources = ['local', 'facebook'];
 
 class Auth extends Document {
-  constructor(auth: Object) {
-    if (new.target === Auth) {
-      throw new TypeError('Cannot construct Abstract instances directly');
-    }
-    super(auth);
-  }
-
   static setMaster(user, newMaster: 'local' | 'facebook') {
     return Promise.all(availableSources.map(
       source => db.collection(`auth_${source}`).update({

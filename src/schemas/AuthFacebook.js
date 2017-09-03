@@ -6,10 +6,6 @@ class AuthFb extends Auth {
   static collectionName = 'auth_facebook';
   static title = 'authFacebook';
 
-  constructor(auth: Object) {
-    super(auth);
-  }
-
   static saveAuthFb(user, payload) {
     const { data } = payload;
     const master = !!payload.master;

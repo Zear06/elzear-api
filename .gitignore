@@ -4,3 +4,4 @@ config.dev.js
 config.test.js
 coverage
 flow-typed
+elzear-api.iml
