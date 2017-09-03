@@ -22,9 +22,7 @@ class User extends Document {
 
   static all() {
     return this.collection().all()
-      .then(users => ({
-        data: users._result
-      }));
+      .then(users => users._result);
   }
 }
 

@@ -1,11 +1,12 @@
 import { Group } from '../schemas/Groups';
 import GroupUser from '../schemas/GroupUser';
+import { apiArray } from './util';
 
 function create(ctx, next) {
   return Group.saveGroup(ctx.state.user, ctx.request.body);
 }
 function getAll(ctx, next) {
-  return Group.getVisible(ctx.state.user, ctx.request.body);
+  return Group.getVisible(ctx.state.user, ctx.request.body).then(apiArray)
 }
 function getMyGroups(ctx, next) {
   return Group.getGroupsOf(ctx.state.user);

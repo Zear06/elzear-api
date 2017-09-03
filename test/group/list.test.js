@@ -27,21 +27,21 @@ describe('/groups', function () {
             .set('Authorization', `Bearer ${users[3].token}`)
             .expect(200)
             .then(function (res) {
-              expect(res.body).to.have.length(2);
+              expect(res.body.data).to.have.length(2);
             }),
           request(server)
             .get('/groups')
             .set('Authorization', `Bearer ${users[2].token}`)
             .expect(200)
             .then(function (res) {
-              expect(res.body).to.have.length(1);
+              expect(res.body.data).to.have.length(1);
             }),
           request(server)
             .get('/groups')
             .set('Authorization', `Bearer ${users[0].token}`)
             .expect(200)
             .then(function (res) {
-              expect(res.body).to.have.length(2);
+              expect(res.body.data).to.have.length(2);
             })
         ])
       })
