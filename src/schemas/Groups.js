@@ -20,10 +20,6 @@ class Group extends Document {
   static title = 'group';
   static saveTime = true;
 
-  constructor(group: Object) {
-    super(group);
-  }
-
   static saveGroup(user, payload): Promise<Group> {
     if (!_.has(payload, 'name')) {
       throw new ApiError(400, 'Group must have a name');

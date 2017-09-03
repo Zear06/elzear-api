@@ -15,10 +15,6 @@ class Comment extends Edge {
   static collectionName = 'comments';
   static title = 'comment';
   static saveTime = true;
-
-  constructor(comment: Object) {
-    super(comment);
-  }
 }
 
 export default Comment;

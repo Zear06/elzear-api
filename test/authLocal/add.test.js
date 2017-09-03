@@ -42,8 +42,6 @@ describe('POST /auth/local/add', function () {
 
   it('adds credentials', function () {
     return AuthFb.register(profile).then(Auth.generateToken).then((user) => {
-        console.log('user', user);
-
         return request(server)
           .post('/auth/local/add')
           .set('Authorization', `Bearer ${user.token}`)

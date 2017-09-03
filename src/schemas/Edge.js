@@ -9,13 +9,6 @@ class Edge extends Document {
   from: string;
   to: string;
 
-  constructor(edge) {
-    if (new.target === Edge) {
-      throw new TypeError('Cannot construct Abstract instances directly');
-    }
-    super(edge)
-  }
-
   static outEdgesByKey(key) {
     return this.edgeCollection().outEdges(`${this.from}/${key}`);
   }

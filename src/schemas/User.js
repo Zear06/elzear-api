@@ -3,8 +3,6 @@ import * as jwt from 'jsonwebtoken';
 import { jwtSecret } from '../../config.dev';
 import Document from './Document';
 
-const authTypes = ['local', 'facebook'];
-
 class User extends Document {
   static collectionName = 'users';
   static title = 'user';
@@ -17,11 +15,6 @@ class User extends Document {
     updatedAt: string,
     createdAt: string
   };
-
-  constructor(user: Object<any>, auths: Array<any>) {
-    super(user);
-    this.auths = auths;
-  }
 
   static decode(token) {
     return jwt.decode(token, jwtSecret);

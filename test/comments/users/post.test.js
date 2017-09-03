@@ -36,8 +36,6 @@ describe('POST /users/:userKey/comments', function () {
           .set('Authorization', `Bearer ${users[0].token}`)
           .expect(200)
           .then(function (res) {
-            console.log('res.body', res.body);
-
             expect(res.body).to.have.length(1);
             expect(res.body[0]).to.have.all.keys(['_id', '_key', '_rev', '_from', '_to', 'text']);
           });
