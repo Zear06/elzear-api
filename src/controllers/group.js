@@ -1,17 +1,17 @@
-import { Group } from '../schemas/Groups';
+import Group from '../schemas/Groups';
 import GroupUser from '../schemas/GroupUser';
 import { apiArray } from './util';
 
 function create(ctx, next) {
-  return Group.saveGroup(ctx.state.user, ctx.request.body);
+  return GroupUser.saveGroup(ctx.state.user, ctx.request.body);
 }
 
 function getAll(ctx, next) {
-  return Group.getVisible(ctx.state.user, ctx.request.body).then(apiArray)
+  return GroupUser.getVisible(ctx.state.user, ctx.request.body).then(apiArray)
 }
 
 function getMyGroups(ctx, next) {
-  return Group.getGroupsOf(ctx.state.user);
+  return GroupUser.getGroupsOf(ctx.state.user);
 }
 
 function get(ctx, next) {
@@ -31,12 +31,12 @@ function putUser(ctx, next) {
 }
 
 function patchUser(ctx, next) {
-  return Group.patchUser(ctx.params.groupKey, ctx.params.userKey, ctx.request.body);
+  return GroupUser.patchUser(ctx.params.groupKey, ctx.params.userKey, ctx.request.body);
 }
 
 function getUsers(ctx, next) {
   return Promise.all([
-    GroupUser.outEdgesByKey(ctx.params.groupKey),
+    GroupUser.getUsersOf(ctx.params.groupKey),
     GroupUser.some({ _from: ctx.params.groupKey, _to: ctx.state.user._key }),
   ]).then(([users, iAmIn]) => ({
     data: users,

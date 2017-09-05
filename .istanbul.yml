@@ -5,4 +5,4 @@ instrumentation:
     - .js
   include-all-sources: true
   default-excludes: true
-  excludes: ['constants/*', 'store/*', 'index.js', 'routes.js', 'components/tools/*']
+  excludes: ['/src/migrations/*', '*createDBs.js', '/src/graphql/*', '*graphql/schema.js', 'index.js']
