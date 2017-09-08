@@ -5,12 +5,12 @@ import { client, facebook, jwtSecret } from '../../../config.dev';
 import * as _ from 'lodash';
 import * as jwt from 'jsonwebtoken';
 import Auth from '../../schemas/Auth';
-import { AuthLocalArango } from '../../schemas/AuthLocal';
+import AuthLocal from '../../schemas/AuthLocal';
 import AuthFb from '../../schemas/AuthFacebook';
 
 function authPatch(ctx) {
   if (ctx.params.authType === 'local') {
-    return AuthLocalArango.authPatch(ctx.state.user, ctx.request.body).then(Auth.generateToken);
+    return AuthLocal.authPatch(ctx.state.user, ctx.request.body).then(Auth.generateToken);
   }
   throw new ApiError('400', 'Invalid Auth type');
 }
@@ -18,7 +18,7 @@ function authPatch(ctx) {
 function authLogin(ctx, next) {
   switch (ctx.params.authType) {
     case 'local': {
-      return AuthLocalArango.login(ctx.request.body).then(Auth.generateToken);
+      return AuthLocal.login(ctx.request.body).then(Auth.generateToken);
     }
     case 'facebook': {
       return passport.authenticate('facebookLogin')(ctx, next);
@@ -32,7 +32,7 @@ function authLogin(ctx, next) {
 function authRegister(ctx, next) {
   switch (ctx.params.authType) {
     case 'local':
-      return AuthLocalArango.register(ctx.request.body).then(Auth.generateToken);
+      return AuthLocal.register(ctx.request.body).then(Auth.generateToken);
     case 'facebook':
       return passport.authenticate('facebookRegister')(ctx, next);
     default:
@@ -44,7 +44,7 @@ function authAdd(ctx, next) {
   ctx.session.userToken = null;
   switch (ctx.params.authType) {
     case 'local':
-      return AuthLocalArango.add(ctx.request.body, ctx.state.user._key).then(Auth.generateToken);
+      return AuthLocal.add(ctx.request.body, ctx.state.user._key).then(Auth.generateToken);
     case 'facebook':
       const userToken = ctx.query.token;
       return new Promise((resolve, reject) => {
@@ -65,7 +65,7 @@ function authAdd(ctx, next) {
 
 const authClasses = {
   'facebook': AuthFb,
-  'local': AuthLocalArango
+  'local': AuthLocal
 };
 
 function callback(endpoint) {

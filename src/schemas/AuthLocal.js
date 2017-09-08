@@ -10,7 +10,7 @@ function hash(username, password) {
   return bcrypt.hash(`${username}${passwordSalt}${password}`, 5);
 }
 
-class AuthLocalArango extends Auth {
+class AuthLocal extends Auth {
   static collectionName = 'auth_local';
   static title = 'authLocal';
 
@@ -47,7 +47,7 @@ class AuthLocalArango extends Auth {
   }
 
   static login(payload: Object): Promise<any> {
-    return AuthLocalArango.credentials2User(payload);
+    return AuthLocal.credentials2User(payload);
   }
 
 
@@ -80,7 +80,7 @@ class AuthLocalArango extends Auth {
       .then(() => hash(username, password))
       .then((passwordHash) => {
         return Promise.all([
-          AuthLocalArango.saveAuthLocal({
+          AuthLocal.saveAuthLocal({
             _key: userKey,
             username,
             passwordHash,
@@ -137,6 +137,4 @@ class AuthLocalArango extends Auth {
 
 }
 
-export {
-  AuthLocalArango
-};
+export default AuthLocal;
