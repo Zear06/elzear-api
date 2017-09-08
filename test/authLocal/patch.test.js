@@ -39,8 +39,9 @@ describe('PATCH /auth/local', function () {
           .expect(200)
           .then(function (res) {
             expect(res.body).to.have.all.keys('token', 'user');
-            expect(res.body.user).to.have.all.keys('_id', '_key', '_rev', 'auths', 'createdAt', 'updatedAt', 'username');
-            expect(res.body.user.username).to.equal(oldAuth.username);
+            expect(res.body.user).to.have.all.keys(
+              '_id', '_key', '_rev', 'auths', 'createdAt', 'updatedAt', 'name', 'masterAuth');
+            expect(res.body.user.name).to.equal(newAuth.username);
           })
       });
   });

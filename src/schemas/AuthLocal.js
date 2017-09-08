@@ -16,12 +16,10 @@ class AuthLocal extends Auth {
 
   static saveAuthLocal(payload) {
     const { _key, username, passwordHash } = payload;
-    const master = !!payload.setMaster;
     return this.save({
       _key,
       username,
-      passwordHash,
-      master
+      passwordHash
     }, { returnNew: true })
       .catch(e => {
         console.log('e', e);
@@ -57,13 +55,13 @@ class AuthLocal extends Auth {
       .then(() => hash(username, password))
       .then((passwordHash) => {
         return User.save({
-          username
+          name: username,
+          masterAuth: 'local'
         }, { returnNew: true })
           .then(user => {
             return this.save({
               username,
               passwordHash,
-              master: true,
               _key: user.new._key
             })
               .then(() => Auth.userPlusAuths(user.new._key))
@@ -83,8 +81,7 @@ class AuthLocal extends Auth {
           AuthLocal.saveAuthLocal({
             _key: userKey,
             username,
-            passwordHash,
-            master: false
+            passwordHash
           }),
           db.collection('users')
             .update(userKey, { updatedAt: new Date() }, { returnNew: true })
@@ -125,7 +122,7 @@ class AuthLocal extends Auth {
             passwordHash
           }, { returnNew: true }),
           db.collection('users')
-            .update(user._id, { updatedAt: new Date() }, { returnNew: true })
+            .update(user._id, { name: username, updatedAt: new Date() }, { returnNew: true })
         ])
           .then(() => Auth.userPlusAuths(user._key));
       })

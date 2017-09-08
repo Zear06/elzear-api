@@ -30,36 +30,6 @@ appKoa.use(cors());
 appKoa.use(passport.initialize());
 appKoa.use(session(appKoa));
 
-const bypassWrapper = [];
-
-['facebook'].forEach(source => {
-  ['register', 'login', 'add'].forEach(type => {
-    bypassWrapper.push(`/auth/${source}/${type}`);
-    bypassWrapper.push(`/auth/${source}/${type}/callback`);
-  })
-});
-
-//Error handling middleware
-appKoa.use(async function (ctx, next) {
-  try {
-    if (bypassWrapper.includes(ctx.path)) {
-      return await next();
-    } else {
-      ctx.type = 'json';
-      ctx.body = await next();
-      ctx.status = 200;
-    }
-  } catch (err) {
-    ctx.status = err.statusCode || 500;
-    if (ctx.status === 500) {
-      console.log('err', err);
-    }
-    ctx.body = {
-      message: err.message
-    };
-  }
-});
-
 
 appKoa
   .use(router.routes())

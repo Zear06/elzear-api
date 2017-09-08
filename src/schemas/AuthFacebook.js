@@ -7,12 +7,9 @@ class AuthFb extends Auth {
   static title = 'authFacebook';
 
   static saveAuthFb(user, payload) {
-    const { data } = payload;
-    const master = !!payload.master;
     return this.save({
       _key: user._key,
-      ...data,
-      master
+      ...payload
     }, { returnNew: true })
       .catch(e => {
         throw new ApiError(400, null, e);
@@ -31,12 +28,12 @@ class AuthFb extends Auth {
 
   static register(payload: Object): Promise<any> {
     return User.save({
-      username: payload.displayName
+      name: payload.displayName,
+      masterAuth: 'facebook'
     }, { returnNew: true })
       .then(user => {
         return this.save({
           ...payload,
-          master: true,
           _key: user.new._key
         })
           .then(() => Auth.userPlusAuths(user.new._key))

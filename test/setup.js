@@ -3,6 +3,8 @@ import { arango as config } from '../config.test';
 import app from '../src/app';
 import { init } from '../src/arango';
 import { collections, edgeCollections } from '../src/schemas/collections'
+import chai from 'chai';
+chai.config.includeStack = true;
 
 const url = `http://${config.username}:${config.password}@${config.host}:${config.port}`;
 
