@@ -29,7 +29,7 @@ describe('GET /users', function () {
           .then(function (res) {
             expect(res.body).to.have.all.keys(['data']);
             expect(res.body.data).to.have.length(4);
-            expect(res.body.data[2]).to.have.all.keys(['_key', '_id', '_rev', 'createdAt', 'updatedAt', 'username']);
+            expect(res.body.data[2]).to.have.all.keys(['_key', '_id', '_rev', 'createdAt', 'updatedAt', 'name', 'masterAuth']);
           });
       })
   });

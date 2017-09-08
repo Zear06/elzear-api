@@ -52,7 +52,8 @@ describe('POST /auth/local/add', function () {
             expect(res.statusCode).to.equal(200);
             expect(res.body).to.have.all.keys('token', 'user');
             expect(res.body.token).to.be.a('string');
-            expect(res.body.user).to.have.all.keys('_id', '_key', '_rev', 'auths', 'createdAt', 'updatedAt', 'username');
+            expect(res.body.user).to.have.all.keys(
+              '_id', '_key', '_rev', 'auths', 'createdAt', 'updatedAt', 'name', 'masterAuth');
             // expect(res.body.user.username).to.equal('new');
           })
           .then(() => Promise.all([

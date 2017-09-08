@@ -90,7 +90,7 @@ const wrappers = {
       .then(() => {
         return callback(ctx.req.user, ctx.session.userToken || null)
       })
-      .then(user => Auth.generateToken())
+      .then(Auth.generateToken)
       .then((tokenResp) => {
         ctx.status = 301;
         ctx.body = 'Redirecting to shopping cart';

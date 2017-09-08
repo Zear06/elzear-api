@@ -14,6 +14,12 @@ class Group extends Document {
     createdAt: string
   };
 
+
+  static all() {
+    return this.collection().all()
+      .then(groups => groups._result);
+  }
+
   static collectionName = 'groups';
   static title = 'group';
   static saveTime = true;

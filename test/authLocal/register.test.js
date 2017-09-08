@@ -35,7 +35,8 @@ describe('POST /auth/local/register', function () {
         expect(res.statusCode).to.equal(200);
         expect(res.body).to.have.all.keys('token', 'user');
         expect(res.body.token).to.be.a('string');
-        expect(res.body.user).to.have.all.keys('_id', '_key', '_rev', 'auths', 'createdAt', 'updatedAt', 'username');
+        expect(res.body.user).to.have.all.keys(
+          '_id', '_key', '_rev', 'auths', 'createdAt', 'updatedAt', 'name', 'masterAuth');
       });
   });
 

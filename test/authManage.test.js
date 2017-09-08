@@ -36,8 +36,9 @@ describe('PATCH /auth/:type', function () {
           .then(function (res) {
             const user = res.body;
             expect(user.auths).to.have.length(2);
-            expect(_.find(user.auths, { type: 'local' }).master).to.equal(true);
-            expect(_.find(user.auths, { type: 'facebook' }).master).to.equal(false);
+            expect(user.masterAuth).to.equal('local');
+            expect(_.find(user.auths, { type: 'local' })).to.be.ok;
+            expect(_.find(user.auths, { type: 'facebook' })).to.be.ok;
             return token;
           })
       })
@@ -49,8 +50,7 @@ describe('PATCH /auth/:type', function () {
           .then(function (res) {
             const user = res.body;
             expect(user.auths).to.have.length(2);
-            expect(_.find(user.auths, { type: 'local' }).master).to.equal(true);
-            expect(_.find(user.auths, { type: 'facebook' }).master).to.equal(false);
+            expect(user.masterAuth).to.equal('local');
             return token;
           })
       })
@@ -62,8 +62,7 @@ describe('PATCH /auth/:type', function () {
           .then(function (res) {
             const user = res.body;
             expect(user.auths).to.have.length(2);
-            expect(_.find(user.auths, { type: 'local' }).master).to.equal(false);
-            expect(_.find(user.auths, { type: 'facebook' }).master).to.equal(true);
+            expect(user.masterAuth).to.equal('facebook');
             return token;
           })
       })
@@ -94,8 +93,7 @@ describe('PATCH /auth/:type', function () {
           .then(function (res) {
             const user = res.body;
             expect(user.auths).to.have.length(2);
-            expect(_.find(user.auths, { type: 'local' }).master).to.equal(false);
-            expect(_.find(user.auths, { type: 'facebook' }).master).to.equal(true);
+            expect(user.masterAuth).to.equal('facebook');
             return token;
           })
       })
@@ -118,11 +116,11 @@ describe('PATCH /auth/:type', function () {
         return request(server)
           .delete('/auth/local')
           .set('Authorization', `Bearer ${token}`)
-          .expect(200)
+          .expect(400)
           .then(function (res) {
-            const user = res.body;
-            expect(_.some(user.auths, { type: 'local' })).to.equal(true);
-            expect(_.some(user.auths, { type: 'facebook' })).to.equal(true);
+            // const user = res.body;
+            // expect(_.some(user.auths, { type: 'local' })).to.equal(true);
+            // expect(_.some(user.auths, { type: 'facebook' })).to.equal(true);
           })
       });
   });

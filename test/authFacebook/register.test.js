@@ -26,7 +26,7 @@ describe('POST /auth/facebook/register', function () {
     return AuthFb.register(profile)
       .then((user) => {
           expect(user).to.be.ok;
-          expect(user).have.all.keys(['_key', '_id', '_rev', 'createdAt', 'updatedAt', 'auths', 'username']);
+          expect(user).have.all.keys(['_key', '_id', '_rev', 'createdAt', 'updatedAt', 'auths', 'name', 'masterAuth']);
           return true;
         }
       );
