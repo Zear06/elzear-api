@@ -62,15 +62,32 @@ class Auth extends Document {
       })
   }
 
+  static userEdit(user, data) {
+    const payload = {};
+    if (data.masterAuth && data.masterAuth !== user.masterAuth) {
+      if (!availableSources.includes(data.masterAuth)) {
+        throw new ApiError(400, 'Invalid Auth type');
+      }
+      return db.collection(`auth_${data.masterAuth}`)
+        .firstExample({ _key: user._key })
+        .then((auth) => {
+          payload.masterAuth = data.masterAuth;
+          payload.name = getUsernameName(data.masterAuth, auth);
+          return User.patchByKey(user._key, payload);
+        });
+    }
+    return User.patchByKey(user._key, payload);
+  }
+
   static toJwt(userPlusAuths) {
     return jwt.sign({
       _key: userPlusAuths._key,
       _id: userPlusAuths._id,
       _rev: userPlusAuths._rev,
-      username: userPlusAuths.username,
+      name: userPlusAuths.name,
+      masterAuth: userPlusAuths.masterAuth,
       createdAt: userPlusAuths.createdAt,
-      updatedAt: userPlusAuths.updatedAt,
-      auths: userPlusAuths.auths
+      updatedAt: userPlusAuths.updatedAt
     }, 'server secret', {
       // expiresInMinutes: 120
     });

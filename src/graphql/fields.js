@@ -1,4 +1,4 @@
-import { GraphQLList, GraphQLNonNull, GraphQLInterfaceType, GraphQLString } from 'graphql';
+import { GraphQLNonNull, GraphQLString } from 'graphql';
 
 const timestamped = {
   createdAt: {
@@ -10,6 +10,9 @@ const timestamped = {
 };
 
 const documentFields = {
+  _id: {
+    type: new GraphQLNonNull(GraphQLString)
+  },
   _key: {
     type: new GraphQLNonNull(GraphQLString)
   },

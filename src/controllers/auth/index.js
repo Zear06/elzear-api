@@ -94,13 +94,13 @@ const wrappers = {
       .then((tokenResp) => {
         ctx.status = 301;
         ctx.body = 'Redirecting to shopping cart';
-        ctx.response.redirect(`${client}/#/?token=${tokenResp.token}`);
+        ctx.response.redirect(`${client}/?token=${tokenResp.token}`);
       })
       .catch((e) => {
         ctx.status = e.status || 500;
         console.log('e', e);
         ctx.body = { message: e.message };
-        ctx.response.redirect(`${client}/#/?error&code${ctx.status}&message=${encodeURI(e.message)}`);
+        ctx.response.redirect(`${client}/?error&code=${ctx.status}&message=${encodeURI(e.message)}`);
       });
   }
 };
