@@ -32,7 +32,7 @@ class AuthFb extends Auth {
       masterAuth: 'facebook'
     }, { returnNew: true })
       .then(user => {
-        return this.save({
+        return AuthFb.save({
           ...payload,
           _key: user.new._key
         })
@@ -42,8 +42,14 @@ class AuthFb extends Auth {
 
   static add(payload: Object, userToken) {
     const user = User.decode(userToken);
-    return AuthFb.saveAuthFb(user, payload)
-      .then(authFb => Auth.userPlusAuths(user._key));
+    return AuthFb.some({ id: payload.id })
+      .then((isSome) => {
+        if (isSome) {
+          throw new ApiError(400, 'This facebook account is already used')
+        }
+        return AuthFb.saveAuthFb(user, payload)
+          .then(authFb => Auth.userPlusAuths(user._key));
+      });
   }
 }
 

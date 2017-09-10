@@ -6,28 +6,16 @@ import groupType from './types/Group';
 import commentType from './types/Comment';
 import authLocalType from './types/AuthLocal';
 import authFbType from './types/AuthFb';
+import { userEdit } from './resolvers/user';
+import { groupAdd } from './resolvers/group';
 
 const schema = new GraphQLSchema({
   types: [authLocalType, authFbType],
   mutation: new GraphQLObjectType({
     name: 'Mutations',
     fields: {
-      submitGroup: {
-        type: groupType,
-        args: {
-          name: {
-            type: GraphQLString
-          },
-          description: {
-            type: GraphQLString
-          }
-        },
-        resolve: (root, { name, description }) => {
-          const kkk = Group.saveGroup({ name, description, type: 'oligarchy' });
-          console.log('kkk', kkk);
-          return kkk;
-        }
-      }
+      groupAdd,
+      userEdit
     }
   }),
   query: new GraphQLObjectType({
@@ -49,11 +37,8 @@ const schema = new GraphQLSchema({
       },
       me: {
         type: userType,
-        resolve: (root, args, { req }) => {
-          console.log('reqaaa', req.user);
-
-          return User.collection().firstExample({ _key: req._key })
-        }
+        resolve: (root, args, { req }) => User.collection()
+          .firstExample({ _key: req.user._key })
       },
       group: {
         type: groupType,

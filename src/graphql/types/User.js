@@ -4,6 +4,7 @@ import { documentFields, timestamped } from '../fields';
 import authType from './Auth';
 import User from '../../schemas/User';
 import GroupUser from '../../schemas/GroupUser';
+import Auth from '../../schemas/Auth';
 
 const userType = new GraphQLObjectType({
   name: 'User',
@@ -31,6 +32,10 @@ const userType = new GraphQLObjectType({
         console.log('groups', groups);
         return groups;
       }
+    },
+    token: {
+      type: new GraphQLNonNull(GraphQLString),
+      resolve: user => Auth.toJwt(user)
     }
   })
 });
