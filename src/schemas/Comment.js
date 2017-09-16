@@ -15,6 +15,15 @@ class Comment extends Edge {
   static collectionName = 'comments';
   static title = 'comment';
   static saveTime = true;
+
+  static postCommentOn(user, { targetId, text }) {
+    const fromId = `users/${user._key}`;
+    return this.save({ text }, fromId, targetId);
+  }
+  static postCommentOnKey(user, { targetType, targetKey, text }) {
+    const targetId = `targetType/${targetKey}`;
+    return this.postCommentOn(user, { targetId, text });
+  }
 }
 
 export default Comment;

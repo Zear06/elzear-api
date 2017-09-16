@@ -16,6 +16,15 @@ function getUsernameName(authType, data) {
   }
 }
 
+function getExtra(authType, data) {
+  if (authType === 'local') {
+    return null;
+  }
+  if (authType === 'facebook') {
+    return data.id;
+  }
+}
+
 class Auth extends Document {
   static setMaster(user, newMaster: 'local' | 'facebook') {
     return db.collection(`auth_${newMaster}`)
@@ -24,7 +33,8 @@ class Auth extends Document {
         _key: user._key,
       }, {
         masterAuth: newMaster,
-        name: getUsernameName(newMaster, auth)
+        name: getUsernameName(newMaster, auth),
+        extra: getExtra(newMaster, auth)
       }))
       .then(() => this.userPlusAuths(user._key));
   }
@@ -73,6 +83,7 @@ class Auth extends Document {
         .then((auth) => {
           payload.masterAuth = data.masterAuth;
           payload.name = getUsernameName(data.masterAuth, auth);
+          payload.extra = getExtra(data.masterAuth, auth);
           return User.patchByKey(user._key, payload);
         });
     }

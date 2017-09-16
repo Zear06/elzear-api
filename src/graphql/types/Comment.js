@@ -1,16 +1,22 @@
 import { GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLString } from 'graphql';
-import { edgeFields, timestamped } from '../fields';
+import { commentsField, edgeFields, timestamped } from '../fields';
+import userType from './User';
+import User from '../../schemas/User';
 
 const commentType = new GraphQLObjectType({
   name: 'Comment',
   fields: () => ({
     ...edgeFields,
     ...timestamped,
+    ...commentsField,
     text: {
       type: new GraphQLNonNull(GraphQLString)
     },
-    comments: {
-      type: new GraphQLList(commentType)
+    author: {
+      type: userType,
+      resolve: ({ _from }) => {
+        return User.collection().firstExample({ _id: _from });
+      }
     },
   })
 });

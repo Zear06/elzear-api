@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { server } from './setup';
-import AuthFb from '../src/schemas/AuthFacebook';
+import AuthFb from './../src/schemas/AuthFacebook';
 import * as setup from './setup';
 
 const testUser = { username: 'valid', password: 'password' };

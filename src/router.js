@@ -63,7 +63,6 @@ router.use('/', async function (ctx, next) {
 router.use('/graphql', async function (ctx, next) {
   try {
     const a = await next();
-    console.log('a', a);
     return a;
   } catch (err) {
     console.log('err', err);

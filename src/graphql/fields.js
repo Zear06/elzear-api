@@ -1,4 +1,6 @@
-import { GraphQLNonNull, GraphQLString } from 'graphql';
+import { GraphQLNonNull, GraphQLString, GraphQLList } from 'graphql';
+import commentType from './types/Comment';
+import Comment from '../schemas/Comment';
 
 const timestamped = {
   createdAt: {
@@ -28,8 +30,18 @@ const edgeFields = {
   },
 };
 
+const commentsField = {
+  comments: {
+    type: new GraphQLList(commentType),
+    resolve: (parent) => {
+      return Comment.inEdgesById(parent._id)
+    }
+  }
+};
+
 export {
   documentFields,
   edgeFields,
-  timestamped
+  timestamped,
+  commentsField
 };

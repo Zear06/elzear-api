@@ -10,14 +10,26 @@ class Edge extends Document {
   to: string;
 
   static outEdgesByKey(key) {
-    return this.edgeCollection().outEdges(`${this.from}/${key}`);
+    return this.outEdgesById(`${this.from}/${key}`);
+  }
+
+  static outEdgesById(id) {
+    return this.edgeCollection().outEdges(id);
+  }
+
+  static inEdgesById(id) {
+    return this.edgeCollection().inEdges(id);
   }
 
   static inEdgesByKey(key) {
-    return this.edgeCollection().inEdges(`${this.to}/${key}`);
+    return this.inEdgesById(`${this.to}/${key}`);
   }
 
   static save(data: Object, fromId?: string, toId?: string) {
+    if (this.saveTime) {
+      const now = new Date();
+      return this.edgeCollection().save({ createdAt: now, updatedAt: now, ...data }, fromId, toId);
+    }
     return this.edgeCollection().save(data, fromId, toId);
   }
 

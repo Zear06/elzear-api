@@ -1,13 +1,16 @@
 import { GraphQLList, GraphQLObjectType, GraphQLSchema, GraphQLString } from 'graphql';
 import User from '../schemas/User';
-import Group from '../schemas/Groups';
+import GroupUser from '../schemas/GroupUser';
+import Comment from '../schemas/Comment';
 import userType from './types/User';
 import groupType from './types/Group';
 import commentType from './types/Comment';
 import authLocalType from './types/AuthLocal';
 import authFbType from './types/AuthFb';
-import { userEdit } from './resolvers/user';
-import { groupAdd } from './resolvers/group';
+import { me, userEdit } from './resolvers/user';
+import { groupAdd, groupEdit, groupSelfAction } from './resolvers/group';
+import { commentAdd } from './resolvers/comment';
+import secure from './resolvers/secure';
 
 const schema = new GraphQLSchema({
   types: [authLocalType, authFbType],
@@ -15,7 +18,10 @@ const schema = new GraphQLSchema({
     name: 'Mutations',
     fields: {
       groupAdd,
-      userEdit
+      groupEdit,
+      userEdit,
+      commentAdd,
+      groupSelfAction
     }
   }),
   query: new GraphQLObjectType({
@@ -23,7 +29,7 @@ const schema = new GraphQLSchema({
     fields: {
       users: {
         type: new GraphQLList(userType),
-        resolve: () => User.all()
+        resolve: secure(() => User.all())
       },
       user: {
         type: userType,
@@ -33,13 +39,9 @@ const schema = new GraphQLSchema({
             type: GraphQLString
           }
         },
-        resolve: (root, { key }) => User.collection().firstExample({ _key: key })
+        resolve: secure((root, { key }) => User.collection().firstExample({ _key: key }))
       },
-      me: {
-        type: userType,
-        resolve: (root, args, { req }) => User.collection()
-          .firstExample({ _key: req.user._key })
-      },
+      me,
       group: {
         type: groupType,
         args: {
@@ -48,17 +50,23 @@ const schema = new GraphQLSchema({
             type: GraphQLString
           }
         },
-        resolve: (root, { key }) => Group.collection().firstExample({ _key: key })
+        resolve: (root, { key }, { req }) => GroupUser.read(req.user, key)
       },
       groups: {
         type: new GraphQLList(groupType),
         resolve: (root, args, { req }) => {
-          return Group.all();
+          return GroupUser.list(req.user);
         }
       },
       comments: {
         type: new GraphQLList(commentType),
-        resolve: () => Comment.all()
+        args: {
+          targetId: {
+            description: 'Returns comments of the element',
+            type: GraphQLString
+          }
+        },
+        resolve: (root, { targetId }) => Comment.inEdgesById(targetId)
       }
     }
   })

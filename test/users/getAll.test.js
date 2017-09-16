@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { expect } from 'chai';
-import * as setup from '../setup';
+import * as setup from './../setup';
 import { set4Users } from '../helpers';
 
 const server = setup.server;
@@ -29,7 +29,8 @@ describe('GET /users', function () {
           .then(function (res) {
             expect(res.body).to.have.all.keys(['data']);
             expect(res.body.data).to.have.length(4);
-            expect(res.body.data[2]).to.have.all.keys(['_key', '_id', '_rev', 'createdAt', 'updatedAt', 'name', 'masterAuth']);
+            expect(res.body.data[2]).to.have.all.keys(
+              ['_key', '_id', '_rev', 'extra', 'createdAt', 'updatedAt', 'name', 'masterAuth']);
           });
       })
   });
