@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { expect } from 'chai';
-import { initDb, server } from '../setup';
+import { initDb, server } from './../setup';
 
 const testUser = { username: 'valid', password: 'password' };
 const testUserDupe = { username: 'Dupe', password: 'dupdupdup' };
@@ -36,7 +36,7 @@ describe('POST /auth/local/register', function () {
         expect(res.body).to.have.all.keys('token', 'user');
         expect(res.body.token).to.be.a('string');
         expect(res.body.user).to.have.all.keys(
-          '_id', '_key', '_rev', 'auths', 'createdAt', 'updatedAt', 'name', 'masterAuth');
+          '_id', '_key', '_rev', 'auths', 'createdAt', 'updatedAt', 'name', 'masterAuth', 'extra');
       });
   });
 

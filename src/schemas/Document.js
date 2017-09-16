@@ -7,7 +7,6 @@ type arangoDoc = {
 }
 
 class Document {
-  document: Object;
   collectionName: string;
   title: string;
   saveTime: boolean;

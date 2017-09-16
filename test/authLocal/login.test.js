@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { expect } from 'chai';
-import * as setup from '../setup';
+import * as setup from './../setup';
 
 const server = setup.server;
 const testUser = { username: 'valid', password: 'password' };

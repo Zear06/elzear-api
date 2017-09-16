@@ -56,7 +56,8 @@ class AuthLocal extends Auth {
       .then((passwordHash) => {
         return User.save({
           name: username,
-          masterAuth: 'local'
+          masterAuth: 'local',
+          extra: null
         }, { returnNew: true })
           .then(user => {
             return this.save({
@@ -112,20 +113,22 @@ class AuthLocal extends Auth {
 
   static authPatch(user, payload: Object): Promise<any> {
     const { username, password } = payload;
-    const currentUsername = _.find(user.auths, { type: 'local' }).username;
-    return this.validate(payload, currentUsername)
-      .then(() => bcrypt.hash(`${username}${passwordSalt}${password}`, 5))
-      .then((passwordHash) => {
-        return Promise.all([
-          db.collection('auth_local').update({ _key: user._key }, {
-            username,
-            passwordHash
-          }, { returnNew: true }),
-          db.collection('users')
-            .update(user._id, { name: username, updatedAt: new Date() }, { returnNew: true })
-        ])
-          .then(() => Auth.userPlusAuths(user._key));
-      })
+    return this.getFromKey(user._key).then(auth => {
+      const currentUsername = auth.username;
+      return this.validate(payload, currentUsername)
+        .then(() => bcrypt.hash(`${username}${passwordSalt}${password}`, 5))
+        .then((passwordHash) => {
+          return Promise.all([
+            db.collection('auth_local').update({ _key: user._key }, {
+              username,
+              passwordHash
+            }, { returnNew: true }),
+            db.collection('users')
+              .update(user._id, { name: username, updatedAt: new Date() }, { returnNew: true })
+          ])
+            .then(() => Auth.userPlusAuths(user._key));
+        })
+    })
       .catch((err) => {
         throw new ApiError(400, null, err);
       });

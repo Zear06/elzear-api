@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { expect } from 'chai';
-import app from '../src/app';
+import app from './../src/app';
 import * as setup from './setup';
 
 let server;
@@ -59,7 +59,7 @@ describe('GET /me', function () {
           .expect(200)
           .then(function (res) {
             expect(res.body).to.have.all.keys(
-              '_id', '_key', '_rev', 'auths', 'createdAt', 'updatedAt', 'name', 'masterAuth');
+              '_id', '_key', '_rev', 'auths', 'createdAt', 'updatedAt', 'name', 'masterAuth', 'extra');
           })
       });
   });

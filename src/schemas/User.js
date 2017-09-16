@@ -16,6 +16,7 @@ class User extends Document {
     _key: string,
     _id: string,
     name: string,
+    extra: string,
     masterAuth: string,
     updatedAt: string,
     createdAt: string

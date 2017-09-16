@@ -14,6 +14,9 @@ const userType = new GraphQLObjectType({
     name: {
       type: new GraphQLNonNull(GraphQLString)
     },
+    extra: {
+      type: GraphQLString
+    },
     masterAuth: {
       type: new GraphQLNonNull(GraphQLString)
     },
@@ -27,9 +30,7 @@ const userType = new GraphQLObjectType({
     groups: {
       type: new GraphQLList(groupType),
       resolve: user => {
-        console.log('user', user);
         const groups = GroupUser.getGroupsOf(user);
-        console.log('groups', groups);
         return groups;
       }
     },

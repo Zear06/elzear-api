@@ -1,10 +1,10 @@
 import request from 'supertest';
 import { expect } from 'chai';
-import * as setup from '../setup';
+import * as setup from './../setup';
 import { registerLogin } from '../helpers';
-import AuthFb from '../../src/schemas/AuthFacebook';
+import AuthFb from '.././../src/schemas/AuthFacebook';
 import { profile } from '../authFacebook/fbProfile';
-import Auth from '../../src/schemas/Auth';
+import Auth from './../../src/schemas/Auth';
 
 const server = setup.server;
 

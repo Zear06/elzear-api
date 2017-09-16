@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { expect } from 'chai';
-import * as setup from '../setup';
+import * as setup from './../setup';
 import { login, registerLogin } from '../helpers';
 
 const newAuth = { username: 'New Name', password: 'New Password' };
@@ -40,7 +40,7 @@ describe('PATCH /auth/local', function () {
           .then(function (res) {
             expect(res.body).to.have.all.keys('token', 'user');
             expect(res.body.user).to.have.all.keys(
-              '_id', '_key', '_rev', 'auths', 'createdAt', 'updatedAt', 'name', 'masterAuth');
+              '_id', '_key', '_rev', 'auths', 'createdAt', 'updatedAt', 'name', 'masterAuth', 'extra');
             expect(res.body.user.name).to.equal(newAuth.username);
           })
       });

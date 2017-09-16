@@ -1,9 +1,9 @@
 import request from 'supertest';
 import { expect } from 'chai';
-import * as setup from '../setup';
-import { server } from '../setup';
+import * as setup from './../setup';
+import { server } from './../setup';
 import { profile } from './fbProfile';
-import AuthFb from '../../src/schemas/AuthFacebook';
+import AuthFb from './../../src/schemas/AuthFacebook';
 
 describe('POST /auth/facebook/login', function () {
 
