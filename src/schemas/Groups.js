@@ -46,31 +46,41 @@ function groupPayload(payload) {
   };
 }
 
+// document: {
+//   _key: string,
+//     _id: string,
+//     name: string,
+//     description: string,
+//     type: string,
+//     list: 0 | 1 | 2,
+//     read: 0 | 1 | 2,
+//     rqst: 1 | 2,
+//     acpt: 1 | 2 | 3,
+//     invt: 1 | 2 | 3,
+//     edit: 2 | 3 | 4,
+//     revo: 3 | 4,
+//     updatedAt: string,
+//     createdAt: string
+// };
 
-class Group extends Document {
-  document: {
-    _key: string,
-    _id: string,
-    name: string,
-    description: string,
-    type: string,
-    list: 0 | 1 | 2,
-    read: 0 | 1 | 2,
-    rqst: 1 | 2,
-    acpt: 1 | 2 | 3,
-    invt: 1 | 2 | 3,
-    edit: 2 | 3 | 4,
-    revo: 3 | 4,
-    updatedAt: string,
-    createdAt: string
-  };
 
-  static all(user) {
+const state = {
+  collectionName: 'groups',
+  title: 'group',
+  saveTime: true
+};
+
+const doc = Document(state);
+
+const Group = {
+
+  ...doc,
+  all(user) {
     return this.collection().all()
       .then(groups => groups._result);
-  }
+  },
 
-  static allPublic(isAuth) {
+  allPublic(isAuth) {
     const rank = isAuth ? 1 : 0;
     return db.query(aql`
     FOR group IN groups
@@ -78,20 +88,18 @@ class Group extends Document {
     RETURN group
     `)
       .then(r => r._result);
-  }
+  },
 
-  static collectionName = 'groups';
-  static title = 'group';
-  static saveTime = true;
 
-  static editGroup(key, payload): Promise<Group> {
+  editGroup(key, payload): Promise<Group> {
     const newValues = groupPayload(payload);
-    return this.collection().update({_key: key}, {
+    return this.collection().update({ _key: key }, {
       ...newValues,
       updatedAt: new Date()
     }, { returnNew: true })
-  }
-  static saveGroup(payload): Promise<Group> {
+  },
+
+  saveGroup(payload): Promise<Group> {
     const values = groupPayload(payload);
 
     const now = new Date();
@@ -107,7 +115,7 @@ class Group extends Document {
     };
     return this.save(data, { returnNew: true });
   }
-}
+};
 
 export default Group;
 export { possibleActions };

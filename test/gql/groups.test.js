@@ -18,7 +18,7 @@ function addGroup() {
     .set('Authorization', `Bearer ${token}`);
 }
 
-describe.only('POST /auth/facebook/add', function () {
+describe('POST /auth/facebook/add', function () {
 
 
   before(() => {

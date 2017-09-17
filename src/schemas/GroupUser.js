@@ -4,27 +4,33 @@ import * as _ from 'lodash';
 import ApiError from '../ApiError';
 import User from './User';
 
-class GroupUser extends Edge {
-  static from = 'groups';
-  static to = 'users';
-  static collectionName = 'groups_users';
-  static title = 'groupMember';
+const state = {
+  from: 'groups',
+  to: 'users',
+  collectionName: 'groups_users',
+  title: 'groupMember'
+};
 
-  static saveGroup(user, payload): Promise<Group> {
+
+const edge = Edge(state);
+
+const GroupUser = {
+  ...edge,
+  saveGroup(user, payload): Promise<Group> {
     return Group.saveGroup(payload)
       .then((group) => {
           return this.save({ type: 'admin' }, group.new._id, user._id)
             .then(() => group.new)
         }
       );
-  }
+  },
 
-  static editGroup(user, groupKey, payload): Promise<Group> {
+  editGroup(user, groupKey, payload): Promise<Group> {
     return Group.editGroup(groupKey, payload)
       .then((group) => group.new);
-  }
+  },
 
-  static read(user, key) {
+  read(user, key) {
     return Group.collection().firstExample({ _key: key })
       .then((group) => {
         if (group.read === 0) return group;
@@ -32,9 +38,9 @@ class GroupUser extends Edge {
         if (group.read === 2 && user && this.some({ _from: 'groups/' + key, _to: user._id })) return group;
         throw new ApiError(401, 'No access to this group');
       })
-  }
+  },
 
-  static list(user) {
+  list(user) {
     console.log('user', user);
     if (!user) {
       return Group.allPublic(false);
@@ -72,16 +78,16 @@ class GroupUser extends Edge {
             ])
         }
       })
-  }
+  },
 
-  static getGroupsOf(user) {
+  getGroupsOf(user) {
     return GroupUser.inEdgesByKey(user._key)
       .then(rows => Promise.all(
         rows.map(row => Group.getFromId(row._from))
       ))
-  }
+  },
 
-  static getUsersOf(group) {
+  getUsersOf(group) {
     return GroupUser.outEdgesByKey(group._key)
       .then(rows => {
         return rows.map(
@@ -91,19 +97,19 @@ class GroupUser extends Edge {
           })
         )
       })
-    .then(rows => Promise.all(
-      rows.map(row => User.getFromId(row._to))
-    ))
-  }
+      .then(rows => Promise.all(
+        rows.map(row => User.getFromId(row._to))
+      ))
+  },
 
-  static getVisible(user) {
+  getVisible(user) {
     return Promise.all([this.getGroupsOf(user), publicGroups()])
       .then((groups) => _.uniqBy(
         [...groups[0], ...groups[1]], group => group._key
       ));
-  }
+  },
 
-  static patchUser(groupKey, userKey, payload = {}) {
+  patchUser(groupKey, userKey, payload = {}) {
     return this.collection()
       .updateByExample({ _from: `groups/${groupKey}`, _to: `users/${userKey}` }, payload)
       .then((resp) => {
@@ -116,7 +122,7 @@ class GroupUser extends Edge {
         throw new ApiError(404, 'Member not found');
       });
   }
-}
+};
 
 function publicGroups() {
   return Group.collection()

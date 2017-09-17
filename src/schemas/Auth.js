@@ -1,5 +1,4 @@
 import { db } from '../arango';
-import Document from './Document';
 import User from './User';
 import * as _ from 'lodash';
 import * as jwt from 'jsonwebtoken';
@@ -25,8 +24,8 @@ function getExtra(authType, data) {
   }
 }
 
-class Auth extends Document {
-  static setMaster(user, newMaster: 'local' | 'facebook') {
+const Auth = {
+  setMaster(user, newMaster: 'local' | 'facebook') {
     return db.collection(`auth_${newMaster}`)
       .firstExample({ _key: user._key })
       .then((auth) => User.collection().update({
@@ -37,9 +36,9 @@ class Auth extends Document {
         extra: getExtra(newMaster, auth)
       }))
       .then(() => this.userPlusAuths(user._key));
-  }
+  },
 
-  static authDelete(user, type: 'local' | 'facebook') {
+  authDelete(user, type: 'local' | 'facebook') {
     return User.collection().firstExample({ _key: user._key })
       .then(user => {
         if (user.masterAuth === type) {
@@ -50,9 +49,9 @@ class Auth extends Document {
         });
       })
       .then(() => this.userPlusAuths(user._key));
-  }
+  },
 
-  static userPlusAuths(userKey) {
+  userPlusAuths(userKey) {
     return Promise.all([
       User.collection().firstExample({ _key: userKey }),
       ...availableSources.map(authType => db.collection(`auth_${authType}`).firstExample({ _key: userKey }).catch(() => null))
@@ -70,9 +69,9 @@ class Auth extends Document {
           auths
         });
       })
-  }
+  },
 
-  static userEdit(user, data) {
+  userEdit(user, data) {
     const payload = {};
     if (data.masterAuth && data.masterAuth !== user.masterAuth) {
       if (!availableSources.includes(data.masterAuth)) {
@@ -88,9 +87,9 @@ class Auth extends Document {
         });
     }
     return User.patchByKey(user._key, payload);
-  }
+  },
 
-  static toJwt(userPlusAuths) {
+  toJwt(userPlusAuths) {
     return jwt.sign({
       _key: userPlusAuths._key,
       _id: userPlusAuths._id,
@@ -102,14 +101,14 @@ class Auth extends Document {
     }, 'server secret', {
       // expiresInMinutes: 120
     });
-  }
+  },
 
-  static generateToken(userPlusAuths) {
+  generateToken(userPlusAuths) {
     return {
       user: userPlusAuths,
       token: Auth.toJwt(userPlusAuths)
     };
   }
-}
+};
 
 export default Auth;
