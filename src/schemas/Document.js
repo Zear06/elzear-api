@@ -1,3 +1,5 @@
+// @flow
+
 import { db } from '../arango';
 import ApiError from '../ApiError';
 
@@ -6,50 +8,60 @@ type arangoDoc = {
   _id: string
 }
 
-class Document {
-  collectionName: string;
-  title: string;
-  saveTime: boolean;
+type documentStateType = {
+  collectionName: string,
+  title: string,
+  saveTime: boolean
+};
 
-  static collection() {
-    return db.collection(this.collectionName);
-  }
+const Document = (_state: documentStateType) => {
+  const state = {
+    ..._state,
+    saveTime: Boolean(_state.saveTime)
+  };
 
-  static some(example: any) {
-    return this.collection().firstExample(example)
-      .then(() => true, () => false)
-  }
+  return {
+    collection() {
+      return db.collection(state.collectionName);
+    },
 
-  static getFromKey(key): Promise<arangoDoc> {
-    return this.collection().firstExample({ _key: key })
-  }
+    some(example: any) {
+      return this.collection().firstExample(example)
+        .then(() => true, () => false)
+    },
 
-  static getFromId(id): Promise<arangoDoc> {
-    return this.collection().firstExample({ _id: id });
-  }
+    getFromKey(key): Promise<arangoDoc> {
+      return this.collection().firstExample({ _key: key })
+    },
 
-  static removeByKey(key): Promise<arangoDoc> {
-    return this.collection().removeByKeys([key]);
-  }
+    getFromId(id): Promise<arangoDoc> {
+      return this.collection().firstExample({ _id: id });
+    },
 
-  static save(data: any, opts?: any): Promise<any> {
-    if (this.saveTime) {
-      const now = new Date();
-      return this.collection().save({ createdAt: now, updatedAt: now, ...data }, opts)
+    removeByKey(key): Promise<arangoDoc> {
+      return this.collection().removeByKeys([key]);
+    },
+
+    save(data: any, opts?: any): Promise<any> {
+      if (state.saveTime) {
+        const now = new Date();
+        return this.collection().save({ createdAt: now, updatedAt: now, ...data }, opts)
+      }
+      return this.collection().save(data, opts)
+    },
+
+    patchByKey(key, payload): Promise<arangoDoc> {
+      return this.collection()
+        .updateByExample({ _key: key }, payload)
+        .then((resp) => {
+          if (resp.updated === 1) {
+            return this.collection().firstExample({ _key: key })
+          }
+          throw new ApiError(404, `${state.title} not found`);
+        });
     }
-    return this.collection().save(data, opts)
   }
-
-  static patchByKey(key, payload): Promise<arangoDoc> {
-    return this.collection()
-      .updateByExample({ _key: key }, payload)
-      .then((resp) => {
-        if (resp.updated === 1) {
-          return this.collection().firstExample({ _key: key })
-        }
-        throw new ApiError(404, `${this.title} not found`);
-      });
-  }
-}
+};
 
 export default Document;
+export type {documentStateType};

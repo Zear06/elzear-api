@@ -7,31 +7,38 @@ import * as _ from 'lodash';
 
 const availableSources = ['local', 'facebook'];
 
-class User extends Document {
-  static collectionName = 'users';
-  static title = 'user';
-  static saveTime = true;
+const state = {
+  collectionName: 'users',
+  title: 'user',
+  saveTime: true
+};
 
-  document: {
-    _key: string,
-    _id: string,
-    name: string,
-    extra: string,
-    masterAuth: string,
-    updatedAt: string,
-    createdAt: string
-  };
+// document = {
+//   _key: string,
+//   _id: string,
+//   name: string,
+//   extra: string,
+//   masterAuth: string,
+//   updatedAt: string,
+//   createdAt: string
+// };
 
-  static decode(token) {
+const doc = Document(state);
+
+const User = {
+
+  ...doc,
+
+  decode(token) {
     return jwt.decode(token, jwtSecret);
-  }
+  },
 
-  static all() {
-    return this.collection().all()
+  all() {
+    return doc.collection().all()
       .then(users => users._result);
-  }
+  },
 
-  static auths(userKey) {
+  auths(userKey) {
     return Promise.all(
       availableSources.map(authType => db.collection(`auth_${authType}`).firstExample({ _key: userKey }).catch(() => null))
     )
@@ -47,6 +54,6 @@ class User extends Document {
           .filter(_.negate(_.isNull))
       });
   }
-}
+};
 
 export default User;

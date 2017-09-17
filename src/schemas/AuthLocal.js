@@ -1,8 +1,8 @@
 import ApiError from '../ApiError';
 import bcrypt from 'bcryptjs';
 import Auth from './Auth';
+import Document from './Document';
 import { passwordSalt } from '../../config.dev';
-import * as _ from 'lodash';
 import { db } from '../arango';
 import User from './User';
 
@@ -10,11 +10,17 @@ function hash(username, password) {
   return bcrypt.hash(`${username}${passwordSalt}${password}`, 5);
 }
 
-class AuthLocal extends Auth {
-  static collectionName = 'auth_local';
-  static title = 'authLocal';
+const state = {
+  collectionName: 'auth_local',
+  title: 'authLocal'
+};
 
-  static saveAuthLocal(payload) {
+const doc = Document(state);
+
+const AuthLocal = {
+  ...doc,
+  ...Auth,
+  saveAuthLocal(payload) {
     const { _key, username, passwordHash } = payload;
     return this.save({
       _key,
@@ -25,9 +31,9 @@ class AuthLocal extends Auth {
         console.log('e', e);
         throw e;
       });
-  }
+  },
 
-  static credentials2User(payload) {
+  credentials2User(payload) {
     return this.collection().firstExample({ username: payload.username })
       .then((authLocal) => {
         return bcrypt.compare(`${payload.username}${passwordSalt}${payload.password}`, authLocal.passwordHash)
@@ -42,14 +48,14 @@ class AuthLocal extends Auth {
       .catch((e) => {
         throw new ApiError(401, 'Invalid login', e);
       });
-  }
+  },
 
-  static login(payload: Object): Promise<any> {
+  login(payload: Object): Promise<any> {
     return AuthLocal.credentials2User(payload);
-  }
+  },
 
 
-  static register(payload: Object): Promise<any> {
+  register(payload: Object): Promise<any> {
     const { username, password } = payload;
     return this.validate(payload)
       .then(() => hash(username, password))
@@ -71,9 +77,9 @@ class AuthLocal extends Auth {
       .catch((err) => {
         throw new ApiError(400, null, err);
       });
-  }
+  },
 
-  static add(payload: Object, userKey) {
+  add(payload: Object, userKey) {
     const { username, password } = payload;
     return this.validate(payload)
       .then(() => hash(username, password))
@@ -92,9 +98,9 @@ class AuthLocal extends Auth {
       .catch((err) => {
         throw new ApiError(400, null, err);
       });
-  }
+  },
 
-  static validate(payload, currentUsername) {
+  validate(payload, currentUsername) {
     const { username, password } = payload;
     if (!username || !password) {
       throw new ApiError(400, 'Missing fields');
@@ -109,9 +115,9 @@ class AuthLocal extends Auth {
         }
         return true;
       });
-  }
+  },
 
-  static authPatch(user, payload: Object): Promise<any> {
+  authPatch(user, payload: Object): Promise<any> {
     const { username, password } = payload;
     return this.getFromKey(user._key).then(auth => {
       const currentUsername = auth.username;
@@ -135,6 +141,6 @@ class AuthLocal extends Auth {
   }
 
 
-}
+};
 
 export default AuthLocal;
