@@ -25,11 +25,7 @@ const Comment = {
   postCommentOn(user, { targetId, text }) {
     const fromId = `users/${user._key}`;
     return this.save({ text }, fromId, targetId);
-  },
-  postCommentOnKey(user, { targetType, targetKey, text }) {
-    const targetId = `targetType/${targetKey}`;
-    return this.postCommentOn(user, { targetId, text });
   }
-}
+};
 
 export default Comment;

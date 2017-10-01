@@ -2,6 +2,7 @@ import { GraphQLList, GraphQLObjectType, GraphQLSchema, GraphQLString } from 'gr
 import User from '../schemas/User';
 import GroupUser from '../schemas/GroupUser';
 import Comment from '../schemas/Comment';
+import Poll from '../schemas/Poll';
 import userType from './types/User';
 import groupType from './types/Group';
 import commentType from './types/Comment';
@@ -11,12 +12,16 @@ import { me, userEdit } from './resolvers/user';
 import { groupAdd, groupEdit, groupSelfAction } from './resolvers/group';
 import { commentAdd } from './resolvers/comment';
 import secure from './resolvers/secure';
+import pollType from './types/Poll';
+import { pollAdd, prefAdd } from './resolvers/poll';
 
 const schema = new GraphQLSchema({
   types: [authLocalType, authFbType],
   mutation: new GraphQLObjectType({
     name: 'Mutations',
     fields: {
+      pollAdd,
+      prefAdd,
       groupAdd,
       groupEdit,
       userEdit,
@@ -51,6 +56,22 @@ const schema = new GraphQLSchema({
           }
         },
         resolve: (root, { key }, { req }) => GroupUser.read(req.user, key)
+      },
+      poll: {
+        type: pollType,
+        args: {
+          key: {
+            description: 'Returns one poll',
+            type: GraphQLString
+          }
+        },
+        resolve: (root, { key }, { req }) => Poll.read(req.user, key)
+      },
+      polls: {
+        type: new GraphQLList(pollType),
+        resolve: (root, args, { req }) => {
+          return Poll.list(req.user);
+        }
       },
       groups: {
         type: new GraphQLList(groupType),

@@ -4,7 +4,10 @@ import userType from './User';
 import { commentsField, documentFields, timestamped } from '../fields';
 import { possibleActions } from '../../schemas/Groups';
 import GroupUser from '../../schemas/GroupUser';
+import Poll from '../../schemas/Poll';
+import Group from '../../schemas/Groups';
 import groupUserType from './GroupUser';
+import pollType from './Poll';
 
 const actions = {};
 for (const action of Object.keys(possibleActions)) {
@@ -33,16 +36,23 @@ const groupType = new GraphQLObjectType({
     description: {
       type: GraphQLString
     },
+    actions: {
+      type: GraphQLString
+    },
     users: {
       type: new GraphQLList(userType),
       resolve: (group) => GroupUser.getUsersOf(group)
     },
     groupUsers: {
       type: new GraphQLList(groupUserType),
-      resolve: (group) => GroupUser.outEdgesByKey(group._key)
+      resolve: (group) => GroupUser.inEdgesByKey(group._key)
     },
     type: {
       type: new GraphQLNonNull(GraphQLString)
+    },
+    polls: {
+      type: new GraphQLList(pollType),
+      resolve: (group) => Poll.outEdgesByKey(group._key)
     }
   })
 });

@@ -7,18 +7,26 @@ import User from '../../src/schemas/Auth';
 
 let token = null;
 let user = null;
+let token2 = null;
+let user2 = null;
 
 function addGroup() {
   return request(server)
     .post('/graphql?query')
-    .send({ query: 'mutation groupadd ' +
-    '{groupAdd(type: "oligarchy", name: "name", description: "descr", list: 0, read: 0, edit: 2) ' +
-    '{ _id, _key, name, description, list, read, edit, createdAt, updatedAt, ' +
-    'users { _id, name }, groupUsers {_id, _from, _to}, type, iAmIn {_id, _from, _to} }}' })
+    .send({
+      query: `mutation groupadd {
+      groupAdd(type: "oligarchy", name: "name", description: "descr") {
+      _id, _key, name, description, createdAt, updatedAt, type,
+      actions,
+      users { _id, name },
+      groupUsers {_id, _from, _to},
+      iAmIn {_id, _from, _to} 
+      }}
+      ` })
     .set('Authorization', `Bearer ${token}`);
 }
 
-describe('POST /auth/facebook/add', function () {
+describe('gql groups', function () {
 
 
   before(() => {
@@ -33,6 +41,16 @@ describe('POST /auth/facebook/add', function () {
       })
       .then(_token => {
         token = _token;
+      })
+      .then(() => {
+        return setUser({ name: 'Timon' })
+          .then(_user => {
+            user2 = _user;
+            return User.toJwt(_user)
+          })
+          .then(_token => {
+            token2 = _token;
+          })
       })
   });
 
@@ -56,7 +74,7 @@ describe('POST /auth/facebook/add', function () {
       .then(function (res) {
         expect(res.body).to.have.all.keys('data');
         expect(res.body.data).to.have.all.keys('groupAdd');
-        expect(res.body.data.groupAdd).to.have.all.keys('_id', '_key', 'name', 'description', 'list', 'read', 'edit',
+        expect(res.body.data.groupAdd).to.have.all.keys('_id', '_key', 'name', 'description', 'actions',
           'createdAt', 'groupUsers', 'iAmIn', 'type', 'updatedAt', 'users');
         expect(res.body.data.groupAdd._id).to.include('groups/');
       })
@@ -68,20 +86,23 @@ describe('POST /auth/facebook/add', function () {
         const groupKey = res.body.data.groupAdd._key;
         return request(server)
           .post('/graphql?query')
-          .send({ query: `mutation groupedit { groupEdit(
+          .send({
+            query: `mutation groupedit { groupEdit(
             groupKey: "${groupKey}", type: "oligarchy", name: "new name", description: "new descr",
             list: 0, read: 0, edit: 2) {
                 _id, _key, name, description, list, read, edit, createdAt, updatedAt, type,
                 users { _id, name },
+                comments { _id, _key, text },
                 groupUsers {_id, _from, _to},
                 iAmIn {_id, _from, _to} }
-            }` })
+            }`
+          })
           .set('Authorization', `Bearer ${token}`)
           .then(function (res) {
             expect(res.body).to.have.all.keys('data');
             expect(res.body.data).to.have.all.keys('groupEdit');
             expect(res.body.data.groupEdit).to.have.all.keys('_id', '_key', 'name', 'description', 'list', 'read', 'edit',
-              'createdAt', 'groupUsers', 'iAmIn', 'type', 'updatedAt', 'users');
+              'createdAt', 'groupUsers', 'iAmIn', 'type', 'updatedAt', 'users', 'comments');
             expect(res.body.data.groupEdit._id).to.include('groups/');
             expect(res.body.data.groupEdit.name).to.equal('new name');
             expect(res.body.data.groupEdit.description).to.equal('new descr');
@@ -95,18 +116,63 @@ describe('POST /auth/facebook/add', function () {
         const groupKey = res.body.data.groupAdd._key;
         return request(server)
           .post('/graphql?query')
-          .send({ query: `{groups {
+          .send({
+            query: `{groups {
               _id, _key, name, description, list, read, edit, createdAt, updatedAt, type,
                 users { _id, name },
                 groupUsers {_id, _from, _to},
                 iAmIn {_id, _from, _to}
-            }}` })
+            }}`
+          })
           .set('Authorization', `Bearer ${token}`)
           .then(function (res) {
-            console.log('(res.body', (res.body));
             expect(res.body).to.have.all.keys('data');
             expect(res.body.data).to.have.all.keys('groups');
             expect(res.body.data.groups[0]._key).to.equal(groupKey);
+          })
+      })
+  });
+  it('get 1 group', function () {
+    return addGroup()
+      .then(function (res) {
+        const groupKey = res.body.data.groupAdd._key;
+        return request(server)
+          .post('/graphql?query')
+          .send({
+            query: `{group(key: "${groupKey}") {
+              _id, _key, name, description, createdAt, updatedAt, type,
+                actions,
+                users { _id, name },
+                groupUsers {_id, _from, _to},
+                iAmIn {_id, _from, _to},
+                polls {_id}
+            }}`
+          })
+          .set('Authorization', `Bearer ${token}`)
+          .then(function (res) {
+            expect(res.body).to.have.all.keys('data');
+            expect(res.body.data).to.have.all.keys('group');
+            expect(res.body.data.group._key).to.equal(groupKey);
+          })
+      })
+  });
+  it('joins group', function () {
+    return addGroup()
+      .then(function (res) {
+        const groupKey = res.body.data.groupAdd._key;
+        return request(server)
+          .post('/graphql?query')
+          .send({
+            query: `mutation groupSelfAction {
+            groupSelfAction(groupKey: "${groupKey}", action: "join") {
+              _id, _key
+            }
+            }`
+          })
+          .set('Authorization', `Bearer ${token2}`)
+          .then(function (res) {
+            expect(res.body).to.have.all.keys('data');
+            expect(res.body.data).to.have.all.keys('groupSelfAction');
           })
       })
   });

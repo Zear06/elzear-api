@@ -5,8 +5,8 @@ import ApiError from '../ApiError';
 import User from './User';
 
 const state = {
-  from: 'groups',
-  to: 'users',
+  from: 'users',
+  to: 'groups',
   collectionName: 'groups_users',
   title: 'groupMember'
 };
@@ -19,7 +19,7 @@ const GroupUser = {
   saveGroup(user, payload): Promise<Group> {
     return Group.saveGroup(payload)
       .then((group) => {
-          return this.save({ type: 'admin' }, group.new._id, user._id)
+          return this.save({ type: 'admin' }, user._id, group.new._id)
             .then(() => group.new)
         }
       );
@@ -32,28 +32,21 @@ const GroupUser = {
 
   read(user, key) {
     return Group.collection().firstExample({ _key: key })
-      .then((group) => {
-        if (group.read === 0) return group;
-        if (group.read === 1 && user) return group;
-        if (group.read === 2 && user && this.some({ _from: 'groups/' + key, _to: user._id })) return group;
-        throw new ApiError(401, 'No access to this group');
-      })
   },
 
   list(user) {
-    console.log('user', user);
     if (!user) {
       return Group.allPublic(false);
     }
     return Promise.all([
-      GroupUser.inEdgesByKey(user._key),
+      GroupUser.outEdgesByKey(user._key),
       Group.allPublic(!!user._key)
     ])
       .then(([myMemberships, publicGroups]) => {
         let groups = [];
         const remainMemberships = [...myMemberships];
         for (const group of publicGroups) {
-          const index = _.findIndex(remainMemberships, memberShip => memberShip._from === group._id);
+          const index = _.findIndex(remainMemberships, memberShip => memberShip._to === group._id);
           const iAmIn = index > -1 ? _.pullAt(remainMemberships, index)[0] : null;
           groups = [
             ...groups,
@@ -68,7 +61,7 @@ const GroupUser = {
         } else {
           return Promise.all(
             remainMemberships.map(
-              (membership, key) => Group.getFromId(membership._from)
+              (membership, key) => Group.getFromId(membership._to)
                 .then(group => ({ ...group, iAmIn: remainMemberships[key] }))
             )
           )
@@ -81,24 +74,24 @@ const GroupUser = {
   },
 
   getGroupsOf(user) {
-    return GroupUser.inEdgesByKey(user._key)
+    return GroupUser.outEdgesByKey(user._key)
       .then(rows => Promise.all(
-        rows.map(row => Group.getFromId(row._from))
+        rows.map(row => Group.getFromId(row._to))
       ))
   },
 
   getUsersOf(group) {
-    return GroupUser.outEdgesByKey(group._key)
+    return GroupUser.inEdgesByKey(group._key)
       .then(rows => {
         return rows.map(
           row => ({
-            _id: row._to,
-            _key: row._to.split('/')[1]
+            _id: row._from,
+            _key: row._from.split('/')[1]
           })
         )
       })
       .then(rows => Promise.all(
-        rows.map(row => User.getFromId(row._to))
+        rows.map(row => User.getFromId(row._from))
       ))
   },
 
@@ -111,12 +104,12 @@ const GroupUser = {
 
   patchUser(groupKey, userKey, payload = {}) {
     return this.collection()
-      .updateByExample({ _from: `groups/${groupKey}`, _to: `users/${userKey}` }, payload)
+      .updateByExample({ _to: `groups/${groupKey}`, _from: `users/${userKey}` }, payload)
       .then((resp) => {
         if (resp.updated === 1) {
           return this.collection().firstExample({
-            _from: `groups/${groupKey}`,
-            _to: `users/${userKey}`
+            _to: `groups/${groupKey}`,
+            _from: `users/${userKey}`
           })
         }
         throw new ApiError(404, 'Member not found');

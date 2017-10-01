@@ -1,4 +1,4 @@
-import { GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLString } from 'graphql';
+import { GraphQLNonNull, GraphQLObjectType, GraphQLString } from 'graphql';
 import { commentsField, edgeFields, timestamped } from '../fields';
 import userType from './User';
 import User from '../../schemas/User';
