@@ -31,8 +31,8 @@ const groupAdd = {
     },
     type: {
       type: GraphQLString
-    },
-    ...actions
+    }
+    // ...actions
   },
   resolve: secure(fctGroupAdd)
 };

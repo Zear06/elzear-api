@@ -36,13 +36,19 @@ const Edge = (_state: edgeStateType) => {
     inEdgesByKey(key) {
       return this.inEdgesById(`${state.to}/${key}`);
     },
-
-    save(data: Object, fromId?: string, toId?: string) {
+    save(_data: Object, fromId?: string, toId?: string) {
+      const data = {..._data};
       if (state.saveTime) {
         const now = new Date();
-        return this.edgeCollection().save({ createdAt: now, updatedAt: now, ...data }, fromId, toId);
+        data.createdAt = now;
+        data.updatedAt = now;
       }
-      return this.edgeCollection().save(data, fromId, toId);
+      return this.edgeCollection().save(data, fromId, toId).then(r => ({
+        ...data,
+        ...r,
+        _from: fromId,
+        _to: toId
+      }));
     },
 
     saveUsingKeys(data: Object, fromKey?: string, toKey?: string) {

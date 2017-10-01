@@ -53,7 +53,7 @@ describe('POST /auth/local/add', function () {
             expect(res.body).to.have.all.keys('token', 'user');
             expect(res.body.token).to.be.a('string');
             expect(res.body.user).to.have.all.keys(
-              '_id', '_key', '_rev', 'auths', 'createdAt', 'updatedAt', 'name', 'masterAuth');
+              '_id', '_key', '_rev', 'auths', 'createdAt', 'updatedAt', 'name', 'masterAuth', 'extra');
             // expect(res.body.user.username).to.equal('new');
           })
           .then(() => Promise.all([

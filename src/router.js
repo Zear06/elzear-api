@@ -8,7 +8,6 @@ import {
   addCallback, authAdd, authPatch, setMaster, authDelete
 } from './controllers/auth/index';
 import ApiError from './ApiError';
-import * as group from './controllers/group';
 import * as user from './controllers/user';
 import Auth from './schemas/Auth';
 import schema from './graphql/schema';
@@ -98,17 +97,6 @@ router.put('/auth/:authType', koaJwt({ secret: jwtSecret }), setMaster);
 router.delete('/auth/:authType', koaJwt({ secret: jwtSecret }), authDelete);
 
 router.get('/users', user.getAll);
-
-router.post('/groups', group.create);
-router.get('/groups', group.getAll);
-router.get('/groups/mine', group.getMyGroups);
-router.get('/groups/:groupKey', group.get);
-router.patch('/groups/:groupKey', group.patch);
-router.del('/groups/:groupKey', group.remove);
-router.get('/groups/:groupKey/users', group.getUsers);
-router.put('/groups/:groupKey/users/:userKey', group.putUser);
-router.patch('/groups/:groupKey/users/:userKey', group.patchUser);
-router.del('/groups/:groupKey/users/:userKey', group.removeUser);
 
 router.get('/schema', () => schema);
 router.get('/printSchema', () => printSchema(schema));

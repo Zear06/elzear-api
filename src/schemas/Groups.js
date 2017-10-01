@@ -24,6 +24,16 @@ const possibleActions = {
   // revo: [3, 4]
 };
 
+const defaulRights = {
+  revo: 4,
+  invt: 3,
+  rqst: 1,
+  acpt: 1,
+  list: 2,
+  read: 0,
+  edit: 3
+};
+
 function groupPayload(payload) {
   if (!_.has(payload, 'name') || payload.name.length < 1) {
     throw new ApiError(400, 'Group must have a name');
@@ -31,15 +41,15 @@ function groupPayload(payload) {
   if (!_.has(payload, 'type') || !groupTypes.includes(payload.type)) {
     throw new ApiError(400, 'Group must have a type');
   }
-  const actions = {};
-  for (const action of Object.keys(possibleActions)) {
-    if (!possibleActions[action].includes(payload[action])) {
-      throw new ApiError(400, 'Invalid action rights');
-    }
-    actions[action] = payload[action];
-  }
+  const actions = { ...defaulRights };
+  // for (const action of Object.keys(possibleActions)) {
+  //   if (!possibleActions[action].includes(payload.actions[action])) {
+  //     throw new ApiError(400, 'Invalid action rights');
+  //   }
+  //   actions[action] = payload.actions[action];
+  // }
   return {
-    ...actions,
+    actions,
     name: payload.name,
     type: payload.type,
     description: payload.description
@@ -107,15 +117,11 @@ const Group = {
     const data = {
       ...values,
       createdAt: now,
-      updatedAt: now,
-      revo: 4,
-      invt: 3,
-      rqst: 1,
-      acpt: 1
+      updatedAt: now
     };
     return this.save(data, { returnNew: true });
   }
 };
 
 export default Group;
-export { possibleActions };
+export { possibleActions, defaulRights };

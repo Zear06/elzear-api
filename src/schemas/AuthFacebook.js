@@ -37,6 +37,7 @@ const AuthFb = {
 
   register(payload: Object): Promise<any> {
     return User.save({
+      extra: payload.id,
       name: payload.displayName,
       masterAuth: 'facebook'
     }, { returnNew: true })
