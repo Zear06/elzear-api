@@ -3,6 +3,8 @@ import { commentsField, edgeFields, timestamped } from '../fields';
 import userType from './User';
 import groupType from './Group';
 import Preference from '../../schemas/Preference';
+import User from '../../schemas/User';
+import Group from '../../schemas/Groups';
 import preferenceType from './Preference';
 
 const pollType = new GraphQLObjectType({
@@ -22,11 +24,15 @@ const pollType = new GraphQLObjectType({
     },
     user: {
       type: userType,
-      resolve: poll => ({ _id: poll._from })
+      resolve: ({ _from }) => {
+        return User.collection().firstExample({ _id: _from });
+      }
     },
     group: {
       type: groupType,
-      resolve: poll => ({ _id: poll._to })
+      resolve: ({ _to }) => {
+        return Group.collection().firstExample({ _id: _to });
+      }
     },
     preferences: {
       type: new GraphQLList(preferenceType),

@@ -67,7 +67,7 @@ const groupEdit = {
 
 function fctGroupSelfAction(root, { groupKey, action }, { req }) {
   if (action === 'join') {
-    return GroupUser.save({ type: 'member' }, `groups/${groupKey}`, req.user._id);
+    return GroupUser.saveEdge({ type: 'member' }, `groups/${groupKey}`, req.user._id);
   }
   if (action === 'quit') {
     return GroupUser.removeFromTo(groupKey, req.user._key);

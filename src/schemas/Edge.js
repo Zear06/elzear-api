@@ -1,14 +1,13 @@
-import { db } from '../arango';
+import { getDb } from '../arango';
 import Document from './Document';
 import ApiError from '../ApiError';
 
-
 type edgeStateType = {
-  document: Object,
   collectionName: string,
   title: string,
   from: string,
-  to: string
+  to: string,
+  saveTime: boolean
 };
 
 const Edge = (_state: edgeStateType) => {
@@ -36,7 +35,7 @@ const Edge = (_state: edgeStateType) => {
     inEdgesByKey(key) {
       return this.inEdgesById(`${state.to}/${key}`);
     },
-    save(_data: Object, fromId?: string, toId?: string) {
+    save(_data: Object, fromId: string, toId: string): { new: {} } {
       const data = {..._data};
       if (state.saveTime) {
         const now = new Date();
@@ -51,7 +50,22 @@ const Edge = (_state: edgeStateType) => {
       }));
     },
 
-    saveUsingKeys(data: Object, fromKey?: string, toKey?: string) {
+    saveEdge(_data: Object, fromId: string, toId: string): { new: {} } {
+      const data = {..._data};
+      if (state.saveTime) {
+        const now = new Date();
+        data.createdAt = now;
+        data.updatedAt = now;
+      }
+      return this.edgeCollection().save(data, fromId, toId).then(r => ({
+        ...data,
+        ...r,
+        _from: fromId,
+        _to: toId
+      }));
+    },
+
+    saveUsingKeys(data: Object, fromKey: string, toKey: string) {
       return this.save(data, `${state.from}/${fromKey}`, `${state.to}/${toKey}`)
     },
 
@@ -67,7 +81,7 @@ const Edge = (_state: edgeStateType) => {
     },
 
     edgeCollection() {
-      return db.edgeCollection(state.collectionName);
+      return getDb().edgeCollection(state.collectionName);
     }
   }
 };

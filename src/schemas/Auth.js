@@ -1,10 +1,20 @@
-import { db } from '../arango';
+import { getDb } from '../arango';
 import User from './User';
 import * as _ from 'lodash';
 import * as jwt from 'jsonwebtoken';
 import ApiError from '../ApiError';
 
 const availableSources = ['local', 'facebook'];
+
+type UserType = {
+  _key: string,
+  _id: string,
+  _rev: string,
+  name: string,
+  masterAuth: string,
+  createdAt: string,
+  updatedAt: string
+}
 
 function getUsernameName(authType, data) {
   if (authType === 'local') {
@@ -25,8 +35,8 @@ function getExtra(authType, data) {
 }
 
 const Auth = {
-  setMaster(user, newMaster: 'local' | 'facebook') {
-    return db.collection(`auth_${newMaster}`)
+  setMaster(user: UserType, newMaster: 'local' | 'facebook') {
+    return getDb().collection(`auth_${newMaster}`)
       .firstExample({ _key: user._key })
       .then((auth) => User.collection().update({
         _key: user._key,
@@ -38,23 +48,23 @@ const Auth = {
       .then(() => this.userPlusAuths(user._key));
   },
 
-  authDelete(user, type: 'local' | 'facebook') {
+  authDelete(user: UserType, type: 'local' | 'facebook') {
     return User.collection().firstExample({ _key: user._key })
       .then(user => {
         if (user.masterAuth === type) {
           throw new ApiError(400, 'Cannot delete master auth');
         }
-        return db.collection(`auth_${type}`).removeByExample({
+        return getDb().collection(`auth_${type}`).removeByExample({
           _key: user._key
         });
       })
       .then(() => this.userPlusAuths(user._key));
   },
 
-  userPlusAuths(userKey) {
+  userPlusAuths(userKey: string) {
     return Promise.all([
       User.collection().firstExample({ _key: userKey }),
-      ...availableSources.map(authType => db.collection(`auth_${authType}`).firstExample({ _key: userKey }).catch(() => null))
+      ...availableSources.map(authType => getDb().collection(`auth_${authType}`).firstExample({ _key: userKey }).catch(() => null))
     ])
       .then((response) => {
         const [user, ...authss] = response;
@@ -71,13 +81,13 @@ const Auth = {
       })
   },
 
-  userEdit(user, data) {
+  userEdit(user: UserType, data: UserType) {
     const payload = {};
     if (data.masterAuth && data.masterAuth !== user.masterAuth) {
       if (!availableSources.includes(data.masterAuth)) {
         throw new ApiError(400, 'Invalid Auth type');
       }
-      return db.collection(`auth_${data.masterAuth}`)
+      return getDb().collection(`auth_${data.masterAuth}`)
         .firstExample({ _key: user._key })
         .then((auth) => {
           payload.masterAuth = data.masterAuth;
@@ -89,7 +99,7 @@ const Auth = {
     return User.patchByKey(user._key, payload);
   },
 
-  toJwt(userPlusAuths) {
+  toJwt(userPlusAuths: UserType): string {
     return jwt.sign({
       _key: userPlusAuths._key,
       _id: userPlusAuths._id,
@@ -103,7 +113,7 @@ const Auth = {
     });
   },
 
-  generateToken(userPlusAuths) {
+  generateToken(userPlusAuths: UserType): { user: UserType, token: string } {
     return {
       user: userPlusAuths,
       token: Auth.toJwt(userPlusAuths)

@@ -5,12 +5,14 @@ import * as setup from './setup';
 
 const testUser = { username: 'valid', password: 'password' };
 
-const makePayload = (auth) => ({
-...testUser,
-...auth
+type AuthType = {};
+
+const makePayload = (auth: AuthType) => ({
+  ...testUser,
+  ...auth
 });
 
-function register(auth) {
+function register(auth: AuthType) {
   return request(server)
     .post('/auth/local/register')
     .send(makePayload(auth))
@@ -18,7 +20,7 @@ function register(auth) {
     .expect(200)
 }
 
-function registerLogin(auth) {
+function registerLogin(auth: ?AuthType) {
   return register(makePayload(auth))
     .then(() => login(makePayload(auth)))
     .then(function (res) {
@@ -26,7 +28,7 @@ function registerLogin(auth) {
     });
 }
 
-function login(auth) {
+function login(auth: AuthType) {
   return request(server)
     .post('/auth/local/login')
     .send(makePayload(auth))
@@ -36,7 +38,7 @@ const fbProfile = {
   id: 'idid'
 };
 
-function wholeUser(auth) {
+function wholeUser(auth: AuthType) {
   return registerLogin(makePayload(auth))
     .then(token => AuthFb.add(fbProfile, token)
       .then(() => token)

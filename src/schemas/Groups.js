@@ -1,8 +1,7 @@
-// @flow
 import * as _ from 'lodash';
 import ApiError from '../ApiError';
 import Document from './Document';
-import { db } from '../arango';
+import { getDb } from '../arango';
 import { aql } from 'arangojs';
 
 const groupTypes = ['oligarchy'];
@@ -80,6 +79,11 @@ const state = {
   saveTime: true
 };
 
+type GroupType = {
+  _id: string,
+  _key: string
+};
+
 const doc = Document(state);
 
 const Group = {
@@ -92,7 +96,7 @@ const Group = {
 
   allPublic(isAuth) {
     const rank = isAuth ? 1 : 0;
-    return db.query(aql`
+    return getDb().query(aql`
     FOR group IN groups
     FILTER group.list <= ${rank}
     RETURN group
@@ -101,7 +105,7 @@ const Group = {
   },
 
 
-  editGroup(key, payload): Promise<Group> {
+  editGroup(key, payload): Promise<{ new: GroupType }> {
     const newValues = groupPayload(payload);
     return this.collection().update({ _key: key }, {
       ...newValues,
@@ -109,7 +113,7 @@ const Group = {
     }, { returnNew: true })
   },
 
-  saveGroup(payload): Promise<Group> {
+  saveGroup(payload) {
     const values = groupPayload(payload);
 
     const now = new Date();

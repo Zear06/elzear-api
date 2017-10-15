@@ -80,10 +80,10 @@ describe('POST /auth/local/login', function () {
         return request(server)
           .post('/auth/local/login')
           .send({ username: 'user' })
-          .expect(401)
+          .expect(400)
           .then(function (res) {
-            expect(res.statusCode).to.equal(401);
-            expect(res.body).to.deep.equal({ message: 'Invalid login' });
+            expect(res.statusCode).to.equal(400);
+            expect(res.body).to.deep.equal({ message: 'Invalid payload' });
           });
       });
   });

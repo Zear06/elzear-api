@@ -5,7 +5,6 @@ import { commentsField, documentFields, timestamped } from '../fields';
 import { possibleActions } from '../../schemas/Groups';
 import GroupUser from '../../schemas/GroupUser';
 import Poll from '../../schemas/Poll';
-import Group from '../../schemas/Groups';
 import groupUserType from './GroupUser';
 import pollType from './Poll';
 

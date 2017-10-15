@@ -1,6 +1,6 @@
 // @flow
 
-import { db } from '../arango';
+import { getDb } from '../arango';
 import ApiError from '../ApiError';
 
 type arangoDoc = {
@@ -22,7 +22,7 @@ const Document = (_state: documentStateType) => {
 
   return {
     collection() {
-      return db.collection(state.collectionName);
+      return getDb().collection(state.collectionName);
     },
 
     some(example: any) {
@@ -30,15 +30,15 @@ const Document = (_state: documentStateType) => {
         .then(() => true, () => false)
     },
 
-    getFromKey(key): Promise<arangoDoc> {
+    getFromKey(key: string): Promise<arangoDoc> {
       return this.collection().firstExample({ _key: key })
     },
 
-    getFromId(id): Promise<arangoDoc> {
+    getFromId(id: string): Promise<arangoDoc> {
       return this.collection().firstExample({ _id: id });
     },
 
-    removeByKey(key): Promise<arangoDoc> {
+    removeByKey(key: string): Promise<arangoDoc> {
       return this.collection().removeByKeys([key]);
     },
 
@@ -50,7 +50,7 @@ const Document = (_state: documentStateType) => {
       return this.collection().save(data, opts)
     },
 
-    patchByKey(key, payload): Promise<arangoDoc> {
+    patchByKey(key: string, payload: {[string]: any}): Promise<arangoDoc> {
       return this.collection()
         .updateByExample({ _key: key }, payload)
         .then((resp) => {
@@ -64,4 +64,4 @@ const Document = (_state: documentStateType) => {
 };
 
 export default Document;
-export type {documentStateType};
+export type {documentStateType, arangoDoc};

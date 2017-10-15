@@ -8,15 +8,20 @@ const state = {
   from: 'users',
   to: 'groups',
   collectionName: 'groups_users',
-  title: 'groupMember'
+  title: 'groupMember',
+  saveTime: true
 };
 
+type GroupType = {
+  _id: string,
+  _key: string
+}
 
 const edge = Edge(state);
 
 const GroupUser = {
   ...edge,
-  saveGroup(user, payload): Promise<Group> {
+  saveGroup(user, payload): Promise<GroupType> {
     return Group.saveGroup(payload)
       .then((group) => {
           return this.save({ type: 'admin' }, user._id, group.new._id)
@@ -25,7 +30,7 @@ const GroupUser = {
       );
   },
 
-  editGroup(user, groupKey, payload): Promise<Group> {
+  editGroup(user, groupKey, payload): Promise<GroupType> {
     return Group.editGroup(groupKey, payload)
       .then((group) => group.new);
   },

@@ -10,12 +10,12 @@ let user = null;
 let token2 = null;
 let user2 = null;
 
-function addGroup() {
+function addGroup(_token = token) {
   return request(server)
     .post('/graphql?query')
     .send({
       query: `mutation groupadd {
-      groupAdd(type: "oligarchy", name: "name", description: "descr") {
+      groupAdd(type: "oligarchy", name: "Group Name", description: "descr") {
       _id, _key, name, description, createdAt, updatedAt, type,
       actions,
       users { _id, name },
@@ -23,7 +23,7 @@ function addGroup() {
       iAmIn {_id, _from, _to} 
       }}
       ` })
-    .set('Authorization', `Bearer ${token}`);
+    .set('Authorization', `Bearer ${_token}`);
 }
 
 describe('gql groups', function () {
@@ -177,3 +177,5 @@ describe('gql groups', function () {
       })
   });
 });
+
+export default addGroup;

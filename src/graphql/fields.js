@@ -1,6 +1,7 @@
 import { GraphQLNonNull, GraphQLString, GraphQLList } from 'graphql';
 import commentType from './types/Comment';
 import Comment from '../schemas/Comment';
+import type { arangoDoc } from '../schemas/Document';
 
 const timestamped = {
   createdAt: {
@@ -33,7 +34,7 @@ const edgeFields = {
 const commentsField = {
   comments: {
     type: new GraphQLList(commentType),
-    resolve: (parent) => {
+    resolve: (parent: arangoDoc) => {
       return Comment.inEdgesById(parent._id)
     }
   }

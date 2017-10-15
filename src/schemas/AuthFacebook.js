@@ -6,7 +6,8 @@ import Document from './Document';
 
 const state = {
   collectionName: 'auth_facebook',
-  title: 'authFacebook'
+  title: 'authFacebook',
+  saveTime: true
 };
 
 const doc = Document(state);
