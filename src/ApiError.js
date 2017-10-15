@@ -1,8 +1,9 @@
 class ApiError extends Error {
-  constructor(statusCode = 500, message, errorCause = null) {
-    super(message || errorCause.message);
+  statusCode: number;
+  constructor(statusCode : number = 500, message : ?string, errorCause : ?{stack: ?string, message: string} = null) {
+    super(message || (errorCause ? errorCause.message : null));
     this.statusCode = statusCode;
-    if (errorCause) {
+    if (errorCause && errorCause.stack) {
       this.stack += '\nCaused by: '+errorCause.stack;
     }
   }

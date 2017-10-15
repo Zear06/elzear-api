@@ -1,10 +1,10 @@
-import { db } from '../src/arango';
+import { getDb } from '../src/arango';
 
-function seed(collectionName, payload) {
-  return db.collection(collectionName).save(payload, { returnNew: true });
+function seed(collectionName: string, payload: { [string]: any }): {} {
+  return getDb().collection(collectionName).save(payload, { returnNew: true });
 }
 
-function setUser(payload) {
+function setUser(payload: { [string]: any }) {
   return seed('users', payload);
 }
 

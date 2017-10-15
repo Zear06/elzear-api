@@ -1,5 +1,5 @@
 import secure from './secure';
-import { GraphQLString } from 'graphql';
+import { GraphQLString, GraphQLFieldResolveFn } from 'graphql';
 
 import Comment from '../../schemas/Comment';
 import commentType from '../types/Comment';
@@ -17,7 +17,7 @@ function fct(root, { targetId, text }, { req }) {
     });
 }
 
-const resolve = secure(fct);
+const resolve : GraphQLFieldResolveFn = secure(fct);
 
 const commentAdd = {
   type: commentType,

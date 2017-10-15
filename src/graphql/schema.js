@@ -13,7 +13,7 @@ import { groupAdd, groupEdit, groupSelfAction } from './resolvers/group';
 import { commentAdd } from './resolvers/comment';
 import secure from './resolvers/secure';
 import pollType from './types/Poll';
-import { pollAdd, prefAdd } from './resolvers/poll';
+import { pollAdd, pollAddOnGroup, prefAdd } from './resolvers/poll';
 
 const schema = new GraphQLSchema({
   types: [authLocalType, authFbType],
@@ -21,6 +21,7 @@ const schema = new GraphQLSchema({
     name: 'Mutations',
     fields: {
       pollAdd,
+      pollAddOnGroup,
       prefAdd,
       groupAdd,
       groupEdit,

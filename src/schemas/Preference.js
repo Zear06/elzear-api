@@ -5,7 +5,8 @@ const state = {
   to: 'polls',
   from: 'users',
   collectionName: 'preferences',
-  title: 'preference'
+  title: 'preference',
+  saveTime: true
 };
 
 const edge = Edge(state);
@@ -16,10 +17,15 @@ function validate(ranking) {
   }
 }
 
+type PreferenceType = {
+  _id: string,
+  _key: string
+}
+
 const Preference = {
   ...edge,
 
-  savePreferenceOnPoll(user, pollKey, ranking): Promise<Preference> {
+  savePreferenceOnPoll(user, pollKey, ranking): Promise<PreferenceType> {
     validate(ranking);
     return this.save({ ranking }, user._id, `polls/${pollKey}`);
   },

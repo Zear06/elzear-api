@@ -20,7 +20,7 @@ describe('POST /auth/local/register', function () {
       .expect(400)
       .then(function (err, res) {
         expect(err.statusCode).to.equal(400);
-        expect(err.body).to.deep.equal({ message: 'Missing fields' });
+        expect(err.body).to.deep.equal({ message: 'Invalid payload' });
         expect(res).not.to.be.ok;
       });
   });

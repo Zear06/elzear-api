@@ -6,23 +6,43 @@ import Preference from '../../schemas/Preference';
 
 function fctPollAdd(root, payload, { req }) {
   const { name, description, type } = payload;
-  return Poll.savePoll(req.user, { name, description, type });
+  return Poll.savePoll(req.user, { name, description, type })
+    .then(a => {
+      console.log('a', a);
+      return a;
+    });
 }
+function fctPollAddOnGroup(root, payload, { req }) {
+  const { name, description, type, groupKey } = payload;
+  return Poll.savePollOnGroup(req.user, groupKey, { name, description, type });
+}
+
+const pollArgs = {
+  name: {
+    type: GraphQLString
+  },
+  description: {
+    type: GraphQLString
+  },
+  type: {
+    type: GraphQLString
+  }
+};
 
 const pollAdd = {
   type: pollType,
-  args: {
-    name: {
-      type: GraphQLString
-    },
-    description: {
-      type: GraphQLString
-    },
-    type: {
-      type: GraphQLString
-    }
-  },
+  args: pollArgs,
   resolve: secure(fctPollAdd)
+};
+const pollAddOnGroup = {
+  type: pollType,
+  args: {
+    groupKey: {
+      type: GraphQLString
+    },
+    ...pollArgs
+  },
+  resolve: secure(fctPollAddOnGroup)
 };
 
 function fctPrefAdd(root, payload, { req }) {
@@ -45,5 +65,6 @@ const prefAdd = {
 
 export {
   pollAdd,
+  pollAddOnGroup,
   prefAdd
 };

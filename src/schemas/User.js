@@ -2,7 +2,7 @@
 import * as jwt from 'jsonwebtoken';
 import { jwtSecret } from '../../config.dev';
 import Document from './Document';
-import { db } from '../arango';
+import { getDb } from '../arango';
 import * as _ from 'lodash';
 
 const availableSources = ['local', 'facebook'];
@@ -40,7 +40,7 @@ const User = {
 
   auths(userKey) {
     return Promise.all(
-      availableSources.map(authType => db.collection(`auth_${authType}`).firstExample({ _key: userKey }).catch(() => null))
+      availableSources.map(authType => getDb().collection(`auth_${authType}`).firstExample({ _key: userKey }).catch(() => null))
     )
       .then(auths => {
         return auths

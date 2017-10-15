@@ -4,11 +4,9 @@ import graphqlHTTP from 'koa-graphql';
 import health from './controllers/health';
 import { jwtSecret } from '../config.dev';
 import {
-  authLogin, authRegister, callback,
-  addCallback, authAdd, authPatch, setMaster, authDelete
+  authLogin, authRegister, callback, authAdd, authPatch, setMaster, authDelete
 } from './controllers/auth/index';
 import ApiError from './ApiError';
-import * as user from './controllers/user';
 import Auth from './schemas/Auth';
 import schema from './graphql/schema';
 import { printIntrospectionSchema, printSchema } from 'graphql';
@@ -95,8 +93,6 @@ router.get('/auth/:authType/add/callback', callback('add'));
 router.patch('/auth/:authType', koaJwt({ secret: jwtSecret }), authPatch);
 router.put('/auth/:authType', koaJwt({ secret: jwtSecret }), setMaster);
 router.delete('/auth/:authType', koaJwt({ secret: jwtSecret }), authDelete);
-
-router.get('/users', user.getAll);
 
 router.get('/schema', () => schema);
 router.get('/printSchema', () => printSchema(schema));

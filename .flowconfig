@@ -1,12 +1,18 @@
 [ignore]
-.*/node_modules/.*
+<PROJECT_ROOT>/coverage/.*
+<PROJECT_ROOT>/node_modules/.*
+<PROJECT_ROOT>/test/.*
+<PROJECT_ROOT>.*\.test\.js
 
 [include]
+src/**/*.js
 
 [libs]
+flow-typed
 
 [lints]
 
 [options]
+all=true
+esproposal.decorators=ignore
 module.system.node.resolve_dirname=apps
-module.name_mapper='\(react-redux\)' -> '<PROJECT_ROOT>/flow/GeneralStub.js.flow'

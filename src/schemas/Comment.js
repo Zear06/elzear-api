@@ -1,5 +1,7 @@
 // @flow
+import Document from './Document';
 import Edge from './Edge';
+import { getDb } from '../arango';
 
 
 // document: {
@@ -18,11 +20,36 @@ const state = {
   saveTime: true
 };
 
-const edge = Edge(state);
-const Comment = {
 
-  ...edge,
-  postCommentOn(user, { targetId, text }) {
+const doc = Document(state);
+
+type userType = {
+  _key: string
+};
+
+const Comment = {
+  ...doc,
+  save(_data: Object, fromId?: string, toId?: string): { new: {} } {
+    const data = { ..._data };
+    if (state.saveTime) {
+      const now = new Date();
+      data.createdAt = now;
+      data.updatedAt = now;
+    }
+    return this.collection()
+      .save({ ...data, _from: fromId, _to: toId })
+      .then(r => ({
+        ...data,
+        ...r,
+        _from: fromId,
+        _to: toId
+      }));
+  },
+
+  inEdgesById(id: string) {
+    return getDb().edgeCollection(state.collectionName).inEdges(id);
+  },
+  postCommentOn(user: userType, { targetId, text }: { targetId: string, text: string }) {
     const fromId = `users/${user._key}`;
     return this.save({ text }, fromId, targetId);
   }

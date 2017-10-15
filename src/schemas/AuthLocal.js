@@ -3,16 +3,28 @@ import bcrypt from 'bcryptjs';
 import Auth from './Auth';
 import Document from './Document';
 import { passwordSalt } from '../../config.dev';
-import { db } from '../arango';
+import { getDb } from '../arango';
 import User from './User';
 
 function hash(username, password) {
   return bcrypt.hash(`${username}${passwordSalt}${password}`, 5);
 }
 
+
+const refinePayload = (payload: mixed): { username: string, password: string } => {
+  if (payload
+    && typeof payload === 'object'
+    && typeof payload.username === 'string'
+    && typeof payload.password === 'string') {
+    return { username: payload.username, password: payload.password };
+  }
+  throw new ApiError(400, 'Invalid payload');
+};
+
 const state = {
   collectionName: 'auth_local',
-  title: 'authLocal'
+  title: 'authLocal',
+  saveTime: true
 };
 
 const doc = Document(state);
@@ -33,10 +45,10 @@ const AuthLocal = {
       });
   },
 
-  credentials2User(payload) {
-    return this.collection().firstExample({ username: payload.username })
+  credentials2User({ username, password }: { username: string, password: string }) {
+    return this.collection().firstExample({ username })
       .then((authLocal) => {
-        return bcrypt.compare(`${payload.username}${passwordSalt}${payload.password}`, authLocal.passwordHash)
+        return bcrypt.compare(`${username}${passwordSalt}${password}`, authLocal.passwordHash)
           .then((isValid) => {
             if (isValid) {
               return Auth.userPlusAuths(authLocal._key);
@@ -50,13 +62,13 @@ const AuthLocal = {
       });
   },
 
-  login(payload: Object): Promise<any> {
-    return AuthLocal.credentials2User(payload);
+  login(payload: mixed): Promise<any> {
+    return AuthLocal.credentials2User(refinePayload(payload));
   },
 
 
-  register(payload: Object): Promise<any> {
-    const { username, password } = payload;
+  register(payload: mixed): Promise<any> {
+    const { username, password } = refinePayload(payload);
     return this.validate(payload)
       .then(() => hash(username, password))
       .then((passwordHash) => {
@@ -79,9 +91,9 @@ const AuthLocal = {
       });
   },
 
-  add(payload: Object, userKey) {
-    const { username, password } = payload;
-    return this.validate(payload)
+  add(payload: mixed, userKey) {
+    const { username, password } = refinePayload(payload);
+    return this.validate({ username, password })
       .then(() => hash(username, password))
       .then((passwordHash) => {
         return Promise.all([
@@ -90,7 +102,7 @@ const AuthLocal = {
             username,
             passwordHash
           }),
-          db.collection('users')
+          getDb().collection('users')
             .update(userKey, { updatedAt: new Date() }, { returnNew: true })
         ])
           .then(() => Auth.userPlusAuths(userKey));
@@ -117,19 +129,19 @@ const AuthLocal = {
       });
   },
 
-  authPatch(user, payload: Object): Promise<any> {
-    const { username, password } = payload;
+  authPatch(user, payload: mixed): Promise<any> {
+    const { username, password } = refinePayload(payload);
     return this.getFromKey(user._key).then(auth => {
       const currentUsername = auth.username;
       return this.validate(payload, currentUsername)
         .then(() => bcrypt.hash(`${username}${passwordSalt}${password}`, 5))
         .then((passwordHash) => {
           return Promise.all([
-            db.collection('auth_local').update({ _key: user._key }, {
+            getDb().collection('auth_local').update({ _key: user._key }, {
               username,
               passwordHash
             }, { returnNew: true }),
-            db.collection('users')
+            getDb().collection('users')
               .update(user._id, { name: username, updatedAt: new Date() }, { returnNew: true })
           ])
             .then(() => Auth.userPlusAuths(user._key));
