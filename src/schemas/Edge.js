@@ -20,6 +20,7 @@ const Edge = (_state: edgeStateType) => {
 
   return {
     ...doc,
+    state,
     outEdgesByKey(key) {
       return this.outEdgesById(`${state.from}/${key}`);
     },

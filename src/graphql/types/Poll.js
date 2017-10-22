@@ -34,9 +34,22 @@ const pollType = new GraphQLObjectType({
         return Group.collection().firstExample({ _id: _to });
       }
     },
+    candidates: {
+      type: GraphQLString,
+      resolve: poll => JSON.stringify(poll.candidates)
+    },
     preferences: {
       type: new GraphQLList(preferenceType),
-      resolve:  poll => Preference.inEdgesByKey(poll._key)
+      resolve: poll => Preference.inEdgesByKey(poll._key)
+    },
+    userPreference: {
+      type: preferenceType,
+      resolve: (poll, __, context) => Preference.collection()
+        .firstExample({
+          _from: context.req.user._id,
+          _to: poll._id
+        })
+        .catch(() => null)
     }
   })
 });

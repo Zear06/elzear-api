@@ -18,9 +18,7 @@ const preferenceType = new GraphQLObjectType({
     },
     ranking: {
       type: GraphQLString,
-      resolve: preference => {
-        return JSON.stringify(preference.ranking);
-      }
+      resolve: preference => JSON.stringify(preference.ranking)
     }
   })
 });

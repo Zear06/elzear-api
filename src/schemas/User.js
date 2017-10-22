@@ -1,9 +1,9 @@
 // @flow
 import * as jwt from 'jsonwebtoken';
+import * as _ from 'lodash';
 import { jwtSecret } from '../../config.dev';
 import Document from './Document';
 import { getDb } from '../arango';
-import * as _ from 'lodash';
 
 const availableSources = ['local', 'facebook'];
 

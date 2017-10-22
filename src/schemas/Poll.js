@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import Edge from './Edge';
 import ApiError from '../ApiError';
 import GroupUser from './GroupUser';
@@ -16,7 +17,6 @@ const pollTypes = ['majority'];
 const edge = Edge(state);
 
 function validate(payload) {
-
   if (!payload.type || !pollTypes.includes(payload.type)) {
     throw new ApiError(400, 'invalid poll type');
   }
@@ -31,7 +31,8 @@ type User = {
 }
 type PollType = {
   _key: string,
-  _id: string
+  _id: string,
+  candidates: Array<string>
 }
 
 const Poll = {
@@ -49,6 +50,17 @@ const Poll = {
             ...pollMeta,
             ...payload
           }))
+      });
+  },
+  addCandidates(user, pollKey : string, candidates : Array<string>) {
+    return this.getFromKey(pollKey)
+      .then(poll => {
+        const oldCandidates = poll.candidates;
+        return this.collection().update({ _key: pollKey }, {
+          candidates: _.uniq([...oldCandidates, ...candidates]),
+          updatedAt: new Date()
+        }, { returnNew: true })
+          .then(r => r.new)
       });
   },
   savePollOnGroup(user, groupKey, payload): Promise<PollType> {
