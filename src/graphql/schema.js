@@ -13,7 +13,7 @@ import { groupAdd, groupEdit, groupSelfAction } from './resolvers/group';
 import { commentAdd } from './resolvers/comment';
 import secure from './resolvers/secure';
 import pollType from './types/Poll';
-import { pollAdd, pollAddOnGroup, prefAdd } from './resolvers/poll';
+import { pollAdd, pollAddCandidates, pollAddOnGroup, prefAdd } from './resolvers/poll';
 
 const schema = new GraphQLSchema({
   types: [authLocalType, authFbType],
@@ -22,6 +22,7 @@ const schema = new GraphQLSchema({
     fields: {
       pollAdd,
       pollAddOnGroup,
+      pollAddCandidates,
       prefAdd,
       groupAdd,
       groupEdit,
@@ -73,6 +74,15 @@ const schema = new GraphQLSchema({
         resolve: (root, args, { req }) => {
           return Poll.list(req.user);
         }
+      },
+      pollsOnGroup: {
+        type: new GraphQLList(pollType),
+        args: {
+          groupKey: {
+            type: GraphQLString
+          }
+        },
+        resolve: (root, { groupKey }) => Poll.inEdgesByKey(groupKey)
       },
       groups: {
         type: new GraphQLList(groupType),

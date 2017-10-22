@@ -1,8 +1,9 @@
 import secure from './secure';
-import { GraphQLBoolean, GraphQLString } from 'graphql';
+import { GraphQLBoolean, GraphQLString, GraphQLList } from 'graphql';
 import Poll from '../../schemas/Poll';
 import pollType from '../types/Poll';
 import Preference from '../../schemas/Preference';
+import preferenceType from '../types/Preference';
 
 function fctPollAdd(root, payload, { req }) {
   const { name, description, type } = payload;
@@ -12,10 +13,29 @@ function fctPollAdd(root, payload, { req }) {
       return a;
     });
 }
+
 function fctPollAddOnGroup(root, payload, { req }) {
-  const { name, description, type, groupKey } = payload;
-  return Poll.savePollOnGroup(req.user, groupKey, { name, description, type });
+  const { name, description, type, groupKey, candidates } = payload;
+  return Poll.savePollOnGroup(req.user, groupKey, { name, description, type, candidates });
 }
+
+function fctAddCandidates(root, payload, { req }) {
+  const { pollKey, candidates } = payload;
+  return Poll.addCandidates(req.user, pollKey, JSON.parse(candidates));
+}
+
+const pollAddCandidates = {
+  type: pollType,
+  args: {
+    pollKey: {
+      type: GraphQLString
+    },
+    candidates: {
+      type: GraphQLString
+    }
+  },
+  resolve: secure(fctAddCandidates)
+};
 
 const pollArgs = {
   name: {
@@ -26,6 +46,9 @@ const pollArgs = {
   },
   type: {
     type: GraphQLString
+  },
+  candidates: {
+    type: new GraphQLList(GraphQLString)
   }
 };
 
@@ -51,7 +74,7 @@ function fctPrefAdd(root, payload, { req }) {
 }
 
 const prefAdd = {
-  type: GraphQLBoolean,
+  type: preferenceType,
   args: {
     pollKey: {
       type: GraphQLString
@@ -66,5 +89,6 @@ const prefAdd = {
 export {
   pollAdd,
   pollAddOnGroup,
-  prefAdd
+  prefAdd,
+  pollAddCandidates
 };
