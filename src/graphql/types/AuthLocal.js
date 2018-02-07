@@ -13,7 +13,7 @@ const authLocalType = new GraphQLObjectType({
       type: new GraphQLNonNull(GraphQLString)
     }
   }),
-  interfaces: () => [ authInterface ]
+  interfaces: () => [authInterface]
 });
 
 export default authLocalType;

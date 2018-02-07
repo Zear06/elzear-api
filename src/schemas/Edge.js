@@ -37,7 +37,7 @@ const Edge = (_state: edgeStateType) => {
       return this.inEdgesById(`${state.to}/${key}`);
     },
     save(_data: Object, fromId: string, toId: string): { new: {} } {
-      const data = {..._data};
+      const data = { ..._data };
       if (state.saveTime) {
         const now = new Date();
         data.createdAt = now;
@@ -52,7 +52,7 @@ const Edge = (_state: edgeStateType) => {
     },
 
     saveEdge(_data: Object, fromId: string, toId: string): { new: {} } {
-      const data = {..._data};
+      const data = { ..._data };
       if (state.saveTime) {
         const now = new Date();
         data.createdAt = now;
@@ -67,7 +67,7 @@ const Edge = (_state: edgeStateType) => {
     },
 
     saveUsingKeys(data: Object, fromKey: string, toKey: string) {
-      return this.save(data, `${state.from}/${fromKey}`, `${state.to}/${toKey}`)
+      return this.save(data, `${state.from}/${fromKey}`, `${state.to}/${toKey}`);
     },
 
     removeFromTo(from, to) {
@@ -84,7 +84,7 @@ const Edge = (_state: edgeStateType) => {
     edgeCollection() {
       return getDb().edgeCollection(state.collectionName);
     }
-  }
+  };
 };
 
 

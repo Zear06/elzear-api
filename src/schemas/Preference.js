@@ -1,6 +1,6 @@
+import * as _ from 'lodash';
 import Edge from './Edge';
 import ApiError from '../ApiError';
-import * as _ from 'lodash';
 
 const state = {
   to: 'polls',
@@ -34,17 +34,8 @@ const Preference = {
   savePreferenceOnPoll(user, pollKey, ranking): Promise<PreferenceType> {
     validate(ranking);
     return this.collection().firstExample({ _from: user._id, _to: `polls/${pollKey}` })
-      .then(
-        pref => this.collection().update(pref._id, { ranking }, { returnNew: true })
-      )
-      .catch(e => {
-        console.log('e', e);
-        return this.save({ ranking }, user._id, `polls/${pollKey}`)
-          .then(a => {
-            console.log('a', a);
-            return a;
-          });
-      })
+      .then(pref => this.collection().update(pref._id, { ranking }, { returnNew: true }))
+      .catch(() => this.save({ ranking }, user._id, `polls/${pollKey}`));
   },
 };
 

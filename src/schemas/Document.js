@@ -1,5 +1,3 @@
-// @flow
-
 import { getDb } from '../arango';
 import ApiError from '../ApiError';
 
@@ -27,11 +25,11 @@ const Document = (_state: documentStateType) => {
 
     some(example: any) {
       return this.collection().firstExample(example)
-        .then(() => true, () => false)
+        .then(() => true, () => false);
     },
 
     getFromKey(key: string): Promise<arangoDoc> {
-      return this.collection().firstExample({ _key: key })
+      return this.collection().firstExample({ _key: key });
     },
 
     getFromId(id: string): Promise<arangoDoc> {
@@ -45,9 +43,9 @@ const Document = (_state: documentStateType) => {
     save(data: any, opts?: any): Promise<any> {
       if (state.saveTime) {
         const now = new Date();
-        return this.collection().save({ createdAt: now, updatedAt: now, ...data }, opts)
+        return this.collection().save({ createdAt: now, updatedAt: now, ...data }, opts);
       }
-      return this.collection().save(data, opts)
+      return this.collection().save(data, opts);
     },
 
     patchByKey(key: string, payload: {[string]: any}): Promise<arangoDoc> {
@@ -55,13 +53,13 @@ const Document = (_state: documentStateType) => {
         .updateByExample({ _key: key }, payload)
         .then((resp) => {
           if (resp.updated === 1) {
-            return this.collection().firstExample({ _key: key })
+            return this.collection().firstExample({ _key: key });
           }
           throw new ApiError(404, `${state.title} not found`);
         });
     }
-  }
+  };
 };
 
 export default Document;
-export type {documentStateType, arangoDoc};
+export type { documentStateType, arangoDoc };

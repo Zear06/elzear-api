@@ -1,5 +1,5 @@
-import secure from './secure';
 import { GraphQLString } from 'graphql';
+import secure from './secure';
 import userType from '../types/User';
 import Auth from '../../schemas/Auth';
 import User from '../../schemas/User';
@@ -24,7 +24,7 @@ function fctMe(root, args, { req }) {
 }
 const me = {
   type: userType,
-    resolve: secure(fctMe)
+  resolve: secure(fctMe)
 };
 
 export {

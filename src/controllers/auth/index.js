@@ -1,9 +1,9 @@
 import type { Middleware, Context } from 'koa';
-import { passport } from './facebook';
-import ApiError from '../../ApiError';
-import { client, facebook, jwtSecret } from '../../../config.dev';
 import * as _ from 'lodash';
 import * as jwt from 'jsonwebtoken';
+import passport from './facebook';
+import ApiError from '../../ApiError';
+import { client, jwtSecret } from '../../../config.dev';
 import Auth from '../../schemas/Auth';
 import AuthLocal from '../../schemas/AuthLocal';
 import AuthFb from '../../schemas/AuthFacebook';
@@ -45,53 +45,37 @@ const authAdd: Middleware = (ctx: Context, next: Middleware) => {
   switch (ctx.params.authType) {
     case 'local':
       return AuthLocal.add(ctx.request.body, ctx.state.user._key).then(Auth.generateToken);
-    case 'facebook':
+    case 'facebook': {
       const userToken = ctx.query.token;
-      return new Promise((resolve, reject) => {
-        return jwt.verify(userToken, jwtSecret, function (err) {
-          if (err) {
-            reject(new ApiError(401, err.message));
-          } else {
-            ctx.session.userToken = userToken;
-            resolve(true);
-          }
-        });
-      })
+      return new Promise((resolve, reject) => jwt.verify(userToken, jwtSecret, (err) => {
+        if (err) {
+          reject(new ApiError(401, err.message));
+        } else {
+          ctx.session.userToken = userToken;
+          resolve(true);
+        }
+      }))
         .then(() => passport.authenticate('facebookAdd')(ctx, next));
+    }
     default:
       throw new Error('invalid login type');
   }
 };
 
 const authClasses = {
-  'facebook': AuthFb,
-  'local': AuthLocal
+  facebook: AuthFb,
+  local: AuthLocal
 };
 
-function callback(endpoint: string): Middleware {
-  return function (ctx: Context) {
-    const authClass = authClasses[ctx.params.authType];
-    const fct = {
-      login: authClass.login,
-      register: authClass.register,
-      add: authClass.add
-    };
 
-    return wrappers[ctx.params.authType](ctx, fct[endpoint], `${ctx.params.authType}${_.capitalize(endpoint)}`);
-  }
-}
-
-type ContextUser = Context & { req: { user: {}}};
-
+type ContextUser = Context & { req: { user: {} } };
 const wrappers = {
-  facebook: function fbWrap(ctx: ContextUser, callback, stratName) {
+  facebook: function fbWrap(ctx: ContextUser, cb, stratName) {
     return passport.authenticate(stratName, {
       successRedirect: '/api/success',
       failureRedirect: '/api'
     })(ctx)
-      .then(() => {
-        return callback(ctx.req.user, ctx.session.userToken || null)
-      })
+      .then(() => cb(ctx.req.user, ctx.session.userToken || null))
       .then(Auth.generateToken)
       .then((tokenResp) => {
         ctx.status = 301;
@@ -100,20 +84,28 @@ const wrappers = {
       })
       .catch((e) => {
         ctx.status = e.status || 500;
-        console.log('e', e);
         ctx.body = { message: e.message };
         ctx.response.redirect(`${client}/?error&code=${ctx.status}&message=${encodeURI(e.message)}`);
       });
   }
 };
 
-const setMaster: Middleware = (ctx: Context) => {
-  return Auth.setMaster(ctx.state.user, ctx.params.authType);
-};
+function callback(endpoint: string): Middleware {
+  return function authCbs(ctx: Context) {
+    const authClass = authClasses[ctx.params.authType];
+    const fct = {
+      login: authClass.login,
+      register: authClass.register,
+      add: authClass.add
+    };
 
-const authDelete: Middleware = (ctx: Context) => {
-  return Auth.authDelete(ctx.state.user, ctx.params.authType);
-};
+    return wrappers[ctx.params.authType](ctx, fct[endpoint], `${ctx.params.authType}${_.capitalize(endpoint)}`);
+  };
+}
+
+const setMaster: Middleware = (c: Context) => Auth.setMaster(c.state.user, c.params.authType);
+
+const authDelete: Middleware = (c: Context) => Auth.authDelete(c.state.user, c.params.authType);
 
 export {
   authLogin,

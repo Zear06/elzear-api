@@ -21,14 +21,14 @@ const AuthFb = {
       _key: user._key,
       ...payload
     }, { returnNew: true })
-      .catch(e => {
+      .catch((e) => {
         throw new ApiError(400, null, e);
       });
   },
 
   profile2User(payload) {
     return this.collection().firstExample({ id: payload.id })
-      .then((authFb) => Auth.userPlusAuths(authFb._key))
+      .then(authFb => Auth.userPlusAuths(authFb._key));
   },
 
   login(payload: Object): Promise<any> {
@@ -42,13 +42,11 @@ const AuthFb = {
       name: payload.displayName,
       masterAuth: 'facebook'
     }, { returnNew: true })
-      .then(user => {
-        return AuthFb.save({
-          ...payload,
-          _key: user.new._key
-        })
-          .then(() => Auth.userPlusAuths(user.new._key))
-      });
+      .then(user => AuthFb.save({
+        ...payload,
+        _key: user.new._key
+      })
+        .then(() => Auth.userPlusAuths(user.new._key)));
   },
 
   add(payload: Object, userToken) {
@@ -56,10 +54,10 @@ const AuthFb = {
     return AuthFb.some({ id: payload.id })
       .then((isSome) => {
         if (isSome) {
-          throw new ApiError(400, 'This facebook account is already used')
+          throw new ApiError(400, 'This facebook account is already used');
         }
         return AuthFb.saveAuthFb(user, payload)
-          .then(authFb => Auth.userPlusAuths(user._key));
+          .then(() => Auth.userPlusAuths(user._key));
       });
   }
 };

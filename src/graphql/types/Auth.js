@@ -19,6 +19,7 @@ const authInterface = new GraphQLInterfaceType({
     if (auth.type === 'facebook') {
       return authFbType;
     }
+    throw new Error('invalid auth');
   }
 });
 

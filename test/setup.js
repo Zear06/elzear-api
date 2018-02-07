@@ -1,4 +1,3 @@
-import Arango from 'arangojs';
 import { arango as config } from '../config.test';
 import app from '../src/app';
 import { init } from '../src/arango';
@@ -6,13 +5,12 @@ import { collections, edgeCollections } from '../src/schemas/collections'
 import chai from 'chai';
 chai.config.includeStack = true;
 
-const url = `http://${config.username}:${config.password}@${config.host}:${config.port}`;
-
 function initDb() {
-  const db = new Arango({
-    url
-  });
+  const db = init(config);
+  db.useDatabase('_system');
+
   return db
+    .useDatabase('_system')
     .dropDatabase('elzear_test')
     .catch(() => true) // database was already removed
     .then(() => db.createDatabase('elzear_test'))
@@ -29,9 +27,7 @@ function initDb() {
 }
 
 function truncate() {
-  const db = new Arango({
-    url
-  });
+  const db = init(config);
   db.useDatabase('elzear_test');
   return Promise.all(
     edgeCollections.map(name => db.edgeCollection(name).truncate())

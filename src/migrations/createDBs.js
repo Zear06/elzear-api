@@ -1,11 +1,8 @@
 import Arango from 'arangojs';
 import { arango } from '../../config.dev';
-import { collections, edgeCollections } from '../schemas/collections'
+import { collections, edgeCollections } from '../schemas/collections';
 
 const url = `http://${arango.username}:${arango.password}@${arango.host}:${arango.port}`;
-const db = Arango({
-  url
-});
 
 // Promise.all([
 //   users.drop(),
@@ -35,13 +32,10 @@ function initDb(dbName) {
     .catch(() => true) // database was already removed
     .then(() => db.createDatabase(dbName))
     .then(() => db.useDatabase(dbName))
-    .then(() => Promise.all(
-      collections.map(name => db.collection(name).create())
-    ))
-    .then(() => Promise.all(
-      edgeCollections.map(name => db.edgeCollection(name).create())
-    ))
+    .then(() => Promise.all(collections.map(name => db.collection(name).create())))
+    .then(() => Promise.all(edgeCollections.map(name => db.edgeCollection(name).create())))
     .then(() => {
+      // eslint-disable-next-line no-console
       console.log('Collection created');
     });
 }

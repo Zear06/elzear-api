@@ -126,7 +126,8 @@ describe('gql polls', function () {
         return request(server)
           .post('/graphql?query')
           .send({
-            query: `mutation prefAdd {prefAdd(pollKey: "${pollKey}", ranking: "[{\\\"id\\\": \\\"id\\\", \\\"name\\\": \\\"name\\\"}]")}`
+            query: `mutation pollAddPreferences($pollKey: String, $ranking: String) { prefAdd(pollKey: $pollKey, ranking: $ranking) { _id _key ranking __typename}}`,
+            variables: { pollKey: pollKey, ranking: '[["first"],["second 1","second 2"]]' }
           })
           .set('Authorization', `Bearer ${token}`)
       })
@@ -143,7 +144,7 @@ describe('gql polls', function () {
           .then(function (res) {
             expect(res.body).to.have.all.keys('data');
             expect(res.body.data).to.have.all.keys('polls');
-            expect(res.body.data.polls[0].preferences[0].ranking).to.equal('[{"id":"id","name":"name"}]');
+            expect(res.body.data.polls[0].preferences[0].ranking).to.equal('[["first"],["second 1","second 2"]]');
           });
       })
   });

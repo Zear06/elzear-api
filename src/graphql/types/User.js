@@ -29,10 +29,7 @@ const userType = new GraphQLObjectType({
     },
     groups: {
       type: new GraphQLList(groupType),
-      resolve: user => {
-        const groups = GroupUser.getGroupsOf(user);
-        return groups;
-      }
+      resolve: user => GroupUser.getGroupsOf(user)
     },
     token: {
       type: new GraphQLNonNull(GraphQLString),
