@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
+import { aql } from 'arangojs';
 import ApiError from '../ApiError';
 import Document from './Document';
 import { getDb } from '../arango';
-import { aql } from 'arangojs';
 
 const groupTypes = ['oligarchy'];
 
@@ -89,7 +89,7 @@ const doc = Document(state);
 const Group = {
 
   ...doc,
-  all(user) {
+  all() {
     return this.collection().all()
       .then(groups => groups._result);
   },
@@ -110,7 +110,7 @@ const Group = {
     return this.collection().update({ _key: key }, {
       ...newValues,
       updatedAt: new Date()
-    }, { returnNew: true })
+    }, { returnNew: true });
   },
 
   saveGroup(payload) {

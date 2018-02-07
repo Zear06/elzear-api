@@ -1,8 +1,5 @@
-// @flow
 import Document from './Document';
-import Edge from './Edge';
 import { getDb } from '../arango';
-
 
 // document: {
 //   _key: string,
@@ -19,7 +16,6 @@ const state = {
   title: 'comment',
   saveTime: true
 };
-
 
 const doc = Document(state);
 

@@ -10,7 +10,7 @@ import authLocalType from './types/AuthLocal';
 import authFbType from './types/AuthFb';
 import { me, userEdit } from './resolvers/user';
 import { groupAdd, groupEdit, groupSelfAction } from './resolvers/group';
-import { commentAdd } from './resolvers/comment';
+import commentAdd from './resolvers/comment';
 import secure from './resolvers/secure';
 import pollType from './types/Poll';
 import { pollAdd, pollAddCandidates, pollAddOnGroup, prefAdd } from './resolvers/poll';
@@ -71,9 +71,7 @@ const schema = new GraphQLSchema({
       },
       polls: {
         type: new GraphQLList(pollType),
-        resolve: (root, args, { req }) => {
-          return Poll.list(req.user);
-        }
+        resolve: (root, args, { req }) => Poll.list(req.user)
       },
       pollsOnGroup: {
         type: new GraphQLList(pollType),
@@ -86,9 +84,7 @@ const schema = new GraphQLSchema({
       },
       groups: {
         type: new GraphQLList(groupType),
-        resolve: (root, args, { req }) => {
-          return GroupUser.list(req.user);
-        }
+        resolve: (root, args, { req }) => GroupUser.list(req.user)
       },
       comments: {
         type: new GraphQLList(commentType),

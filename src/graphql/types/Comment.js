@@ -14,9 +14,7 @@ const commentType = new GraphQLObjectType({
     },
     author: {
       type: userType,
-      resolve: ({ _from }) => {
-        return User.collection().firstExample({ _id: _from });
-      }
+      resolve: ({ _from }) => User.collection().firstExample({ _id: _from })
     },
   })
 });

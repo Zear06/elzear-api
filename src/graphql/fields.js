@@ -34,9 +34,7 @@ const edgeFields = {
 const commentsField = {
   comments: {
     type: new GraphQLList(commentType),
-    resolve: (parent: arangoDoc) => {
-      return Comment.inEdgesById(parent._id)
-    }
+    resolve: (parent: arangoDoc) => Comment.inEdgesById(parent._id)
   }
 };
 

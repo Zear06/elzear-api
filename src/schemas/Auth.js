@@ -1,7 +1,7 @@
-import { getDb } from '../arango';
-import User from './User';
 import * as _ from 'lodash';
 import * as jwt from 'jsonwebtoken';
+import { getDb } from '../arango';
+import User from './User';
 import ApiError from '../ApiError';
 
 const availableSources = ['local', 'facebook'];
@@ -23,6 +23,7 @@ function getUsernameName(authType, data) {
   if (authType === 'facebook') {
     return data.displayName;
   }
+  throw new Error('invalid auth type');
 }
 
 function getExtra(authType, data) {
@@ -32,13 +33,14 @@ function getExtra(authType, data) {
   if (authType === 'facebook') {
     return data.id;
   }
+  throw new Error('Invalid auth type');
 }
 
 const Auth = {
   setMaster(user: UserType, newMaster: 'local' | 'facebook') {
     return getDb().collection(`auth_${newMaster}`)
       .firstExample({ _key: user._key })
-      .then((auth) => User.collection().update({
+      .then(auth => User.collection().update({
         _key: user._key,
       }, {
         masterAuth: newMaster,
@@ -50,12 +52,12 @@ const Auth = {
 
   authDelete(user: UserType, type: 'local' | 'facebook') {
     return User.collection().firstExample({ _key: user._key })
-      .then(user => {
-        if (user.masterAuth === type) {
+      .then((_user) => {
+        if (_user.masterAuth === type) {
           throw new ApiError(400, 'Cannot delete master auth');
         }
         return getDb().collection(`auth_${type}`).removeByExample({
-          _key: user._key
+          _key: _user._key
         });
       })
       .then(() => this.userPlusAuths(user._key));
@@ -68,17 +70,16 @@ const Auth = {
     ])
       .then((response) => {
         const [user, ...authss] = response;
-        const auths = authss.map((auth, i) => (auth) ? {
-            type: availableSources[i],
-            ...auth
-          } : null
-        )
+        const auths = authss.map((auth, i) => ((auth) ? {
+          type: availableSources[i],
+          ...auth
+        } : null))
           .filter(_.negate(_.isNull));
         return ({
           ...user,
           auths
         });
-      })
+      });
   },
 
   userEdit(user: UserType, data: UserType) {

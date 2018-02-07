@@ -5,10 +5,8 @@
 <PROJECT_ROOT>.*\.test\.js
 
 [include]
-src/**/*.js
 
 [libs]
-flow-typed
 
 [lints]
 

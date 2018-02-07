@@ -1,5 +1,5 @@
-import secure from './secure';
 import { GraphQLInt, GraphQLString } from 'graphql';
+import secure from './secure';
 import groupType from '../types/Group';
 import GroupUser from '../../schemas/GroupUser';
 import { possibleActions } from '../../schemas/Groups';
@@ -7,17 +7,19 @@ import groupUserType from '../types/GroupUser';
 import ApiError from '../../ApiError';
 
 const actions = {};
-for (const action of Object.keys(possibleActions)) {
+Object.keys(possibleActions).forEach((action) => {
   actions[action] = { type: GraphQLInt };
-}
+});
 
 function fctGroupAdd(root, payload, { req }) {
   const { name, description, type } = payload;
   const actionsValues = {};
-  for (const action of Object.keys(possibleActions)) {
+  Object.keys(possibleActions).forEach((action) => {
     actionsValues[action] = payload[action];
-  }
-  return GroupUser.saveGroup(req.user, { name, description, type, ...actionsValues });
+  });
+  return GroupUser.saveGroup(req.user, {
+    name, description, type, ...actionsValues
+  });
 }
 
 const groupAdd = {
@@ -36,13 +38,16 @@ const groupAdd = {
   },
   resolve: secure(fctGroupAdd)
 };
+
 function fctGroupEdit(root, payload, { req }) {
   const { name, description, type, groupKey } = payload;
   const actionsValues = {};
-  for (const action of Object.keys(possibleActions)) {
+  Object.keys(possibleActions).forEach((action) => {
     actionsValues[action] = payload[action];
-  }
-  return GroupUser.editGroup(req.user, groupKey, { name, description, type, ...actionsValues });
+  });
+  return GroupUser.editGroup(req.user, groupKey, {
+    name, description, type, ...actionsValues
+  });
 }
 
 const groupEdit = {

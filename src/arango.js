@@ -1,4 +1,4 @@
-import Arango, { C } from 'arangojs';
+import Arango from 'arangojs';
 
 type Db = {
   collection: (string) => any,
@@ -6,14 +6,18 @@ type Db = {
   query: (string) => Promise<any>
 };
 
-let db : ?Db = null;
+let db: ?Db = null;
 
-function init(config: {username: string, databaseName: string, password: string, host: string, port: string | number}) : Db {
-  const url = `http://${config.username}:${config.password}@${config.host}:${config.port}`;
+function init(config: {
+  username: string, databaseName: string,
+  password: string, host: string, port: string | number
+}): Db {
+  const url = `http://${config.host}:${config.port}`;
   db = new Arango({
-    url,
-    databaseName: config.databaseName
+    url
   });
+  db.useDatabase(config.databaseName);
+  db.useBasicAuth(config.username, config.password);
   return db;
 }
 

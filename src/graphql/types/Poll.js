@@ -24,15 +24,11 @@ const pollType = new GraphQLObjectType({
     },
     user: {
       type: userType,
-      resolve: ({ _from }) => {
-        return User.collection().firstExample({ _id: _from });
-      }
+      resolve: ({ _from }) => User.collection().firstExample({ _id: _from })
     },
     group: {
       type: groupType,
-      resolve: ({ _to }) => {
-        return Group.collection().firstExample({ _id: _to });
-      }
+      resolve: ({ _to }) => Group.collection().firstExample({ _id: _to })
     },
     candidates: {
       type: GraphQLString,

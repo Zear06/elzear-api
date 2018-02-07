@@ -9,9 +9,9 @@ import groupUserType from './GroupUser';
 import pollType from './Poll';
 
 const actions = {};
-for (const action of Object.keys(possibleActions)) {
+Object.keys(possibleActions).forEach((action) => {
   actions[action] = { type: GraphQLInt };
-}
+});
 
 const groupType = new GraphQLObjectType({
   name: 'Group',
@@ -26,7 +26,7 @@ const groupType = new GraphQLObjectType({
         if (_.has(group, 'iAmIn')) return group.iAmIn;
         return GroupUser.collection()
           .firstExample({ _from: group._id, _to: req.user._id })
-          .catch(() => null)
+          .catch(() => null);
       }
     },
     name: {
@@ -40,18 +40,18 @@ const groupType = new GraphQLObjectType({
     },
     users: {
       type: new GraphQLList(userType),
-      resolve: (group) => GroupUser.getUsersOf(group)
+      resolve: group => GroupUser.getUsersOf(group)
     },
     groupUsers: {
       type: new GraphQLList(groupUserType),
-      resolve: (group) => GroupUser.inEdgesByKey(group._key)
+      resolve: group => GroupUser.inEdgesByKey(group._key)
     },
     type: {
       type: new GraphQLNonNull(GraphQLString)
     },
     polls: {
       type: new GraphQLList(pollType),
-      resolve: (group) => Poll.outEdgesByKey(group._key)
+      resolve: group => Poll.outEdgesByKey(group._key)
     }
   })
 });

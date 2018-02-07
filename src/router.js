@@ -1,6 +1,7 @@
 import Router from 'koa-router';
 import koaJwt from 'koa-jwt';
 import graphqlHTTP from 'koa-graphql';
+import { printIntrospectionSchema, printSchema } from 'graphql';
 import health from './controllers/health';
 import { jwtSecret } from '../config.dev';
 import {
@@ -9,7 +10,6 @@ import {
 import ApiError from './ApiError';
 import Auth from './schemas/Auth';
 import schema from './graphql/schema';
-import { printIntrospectionSchema, printSchema } from 'graphql';
 
 const router = new Router();
 
@@ -27,15 +27,16 @@ async function checkAuthType(ctx, next) {
 
 const bypassWrapper = ['/graphql'];
 const noJson = ['/schema', '/printSchema', '/printIntrospectionSchema'];
-['facebook'].forEach(source => {
-  ['register', 'login', 'add'].forEach(type => {
+['facebook'].forEach((source) => {
+  ['register', 'login', 'add'].forEach((type) => {
     bypassWrapper.push(`/auth/${source}/${type}`);
     bypassWrapper.push(`/auth/${source}/${type}/callback`);
-  })
+  });
 });
 
-router.use('/', async function (ctx, next) {
+router.use('/', async (ctx, next) => {
   try {
+    ctx.type = 'json';
     if (bypassWrapper.includes(ctx.path)) {
       return await next();
     } else if (noJson.includes(ctx.path)) {
@@ -49,6 +50,7 @@ router.use('/', async function (ctx, next) {
   } catch (err) {
     ctx.status = err.statusCode || 500;
     if (ctx.status === 500) {
+      // eslint-disable-next-line no-console
       console.log('err', err);
     }
     ctx.body = {
@@ -56,12 +58,11 @@ router.use('/', async function (ctx, next) {
     };
   }
 });
-router.use('/graphql', async function (ctx, next) {
+router.use('/graphql', async (ctx, next) => {
   try {
     const a = await next();
     return a;
   } catch (err) {
-    console.log('err', err);
     throw err;
   }
 });

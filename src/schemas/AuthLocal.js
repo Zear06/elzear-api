@@ -1,5 +1,5 @@
-import ApiError from '../ApiError';
 import bcrypt from 'bcryptjs';
+import ApiError from '../ApiError';
 import Auth from './Auth';
 import Document from './Document';
 import { passwordSalt } from '../../config.dev';
@@ -39,24 +39,20 @@ const AuthLocal = {
       username,
       passwordHash
     }, { returnNew: true })
-      .catch(e => {
-        console.log('e', e);
+      .catch((e) => {
         throw e;
       });
   },
 
   credentials2User({ username, password }: { username: string, password: string }) {
     return this.collection().firstExample({ username })
-      .then((authLocal) => {
-        return bcrypt.compare(`${username}${passwordSalt}${password}`, authLocal.passwordHash)
-          .then((isValid) => {
-            if (isValid) {
-              return Auth.userPlusAuths(authLocal._key);
-            } else {
-              throw new ApiError(401, 'Invalid login');
-            }
-          })
-      })
+      .then(authLocal => bcrypt.compare(`${username}${passwordSalt}${password}`, authLocal.passwordHash)
+        .then((isValid) => {
+          if (isValid) {
+            return Auth.userPlusAuths(authLocal._key);
+          }
+          throw new ApiError(401, 'Invalid login');
+        }))
       .catch((e) => {
         throw new ApiError(401, 'Invalid login', e);
       });
@@ -71,21 +67,17 @@ const AuthLocal = {
     const { username, password } = refinePayload(payload);
     return this.validate(payload)
       .then(() => hash(username, password))
-      .then((passwordHash) => {
-        return User.save({
-          name: username,
-          masterAuth: 'local',
-          extra: null
-        }, { returnNew: true })
-          .then(user => {
-            return this.save({
-              username,
-              passwordHash,
-              _key: user.new._key
-            })
-              .then(() => Auth.userPlusAuths(user.new._key))
-          });
-      })
+      .then(passwordHash => User.save({
+        name: username,
+        masterAuth: 'local',
+        extra: null
+      }, { returnNew: true })
+        .then(user => this.save({
+          username,
+          passwordHash,
+          _key: user.new._key
+        })
+          .then(() => Auth.userPlusAuths(user.new._key))))
       .catch((err) => {
         throw new ApiError(400, null, err);
       });
@@ -95,18 +87,16 @@ const AuthLocal = {
     const { username, password } = refinePayload(payload);
     return this.validate({ username, password })
       .then(() => hash(username, password))
-      .then((passwordHash) => {
-        return Promise.all([
-          AuthLocal.saveAuthLocal({
-            _key: userKey,
-            username,
-            passwordHash
-          }),
-          getDb().collection('users')
-            .update(userKey, { updatedAt: new Date() }, { returnNew: true })
-        ])
-          .then(() => Auth.userPlusAuths(userKey));
-      })
+      .then(passwordHash => Promise.all([
+        AuthLocal.saveAuthLocal({
+          _key: userKey,
+          username,
+          passwordHash
+        }),
+        getDb().collection('users')
+          .update(userKey, { updatedAt: new Date() }, { returnNew: true })
+      ])
+        .then(() => Auth.userPlusAuths(userKey)))
       .catch((err) => {
         throw new ApiError(400, null, err);
       });
@@ -123,7 +113,7 @@ const AuthLocal = {
     return this.some({ username })
       .then((hasSome) => {
         if (hasSome) {
-          throw new ApiError(400, 'Username already in use')
+          throw new ApiError(400, 'Username already in use');
         }
         return true;
       });
@@ -131,21 +121,19 @@ const AuthLocal = {
 
   authPatch(user, payload: mixed): Promise<any> {
     const { username, password } = refinePayload(payload);
-    return this.getFromKey(user._key).then(auth => {
+    return this.getFromKey(user._key).then((auth) => {
       const currentUsername = auth.username;
       return this.validate(payload, currentUsername)
         .then(() => bcrypt.hash(`${username}${passwordSalt}${password}`, 5))
-        .then((passwordHash) => {
-          return Promise.all([
-            getDb().collection('auth_local').update({ _key: user._key }, {
-              username,
-              passwordHash
-            }, { returnNew: true }),
-            getDb().collection('users')
-              .update(user._id, { name: username, updatedAt: new Date() }, { returnNew: true })
-          ])
-            .then(() => Auth.userPlusAuths(user._key));
-        })
+        .then(passwordHash => Promise.all([
+          getDb().collection('auth_local').update({ _key: user._key }, {
+            username,
+            passwordHash
+          }, { returnNew: true }),
+          getDb().collection('users')
+            .update(user._id, { name: username, updatedAt: new Date() }, { returnNew: true })
+        ])
+          .then(() => Auth.userPlusAuths(user._key)));
     })
       .catch((err) => {
         throw new ApiError(400, null, err);

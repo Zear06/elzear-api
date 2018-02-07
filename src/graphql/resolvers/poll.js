@@ -1,5 +1,5 @@
+import { GraphQLString, GraphQLList } from 'graphql';
 import secure from './secure';
-import { GraphQLBoolean, GraphQLString, GraphQLList } from 'graphql';
 import Poll from '../../schemas/Poll';
 import pollType from '../types/Poll';
 import Preference from '../../schemas/Preference';
@@ -7,16 +7,14 @@ import preferenceType from '../types/Preference';
 
 function fctPollAdd(root, payload, { req }) {
   const { name, description, type } = payload;
-  return Poll.savePoll(req.user, { name, description, type })
-    .then(a => {
-      console.log('a', a);
-      return a;
-    });
+  return Poll.savePoll(req.user, { name, description, type });
 }
 
 function fctPollAddOnGroup(root, payload, { req }) {
   const { name, description, type, groupKey, candidates } = payload;
-  return Poll.savePollOnGroup(req.user, groupKey, { name, description, type, candidates });
+  return Poll.savePollOnGroup(req.user, groupKey, {
+    name, description, type, candidates
+  });
 }
 
 function fctAddCandidates(root, payload, { req }) {

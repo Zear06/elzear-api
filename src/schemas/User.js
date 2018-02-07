@@ -39,20 +39,16 @@ const User = {
   },
 
   auths(userKey) {
-    return Promise.all(
-      availableSources.map(authType => getDb().collection(`auth_${authType}`).firstExample({ _key: userKey }).catch(() => null))
-    )
-      .then(auths => {
-        return auths
-          .map((auth, idx) => {
-            if (!auth) return null;
-            return {
-              type: availableSources[idx],
-              ...auth
-            }
-          })
-          .filter(_.negate(_.isNull))
-      });
+    return Promise.all(availableSources.map(authType => getDb().collection(`auth_${authType}`).firstExample({ _key: userKey }).catch(() => null)))
+      .then(auths => auths
+        .map((auth, idx) => {
+          if (!auth) return null;
+          return {
+            type: availableSources[idx],
+            ...auth
+          };
+        })
+        .filter(_.negate(_.isNull)));
   }
 };
 
